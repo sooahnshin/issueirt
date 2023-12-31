@@ -1,21 +1,10 @@
----
-output: github_document
----
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
-
-```{r, include = FALSE}
-knitr::opts_chunk$set(
-  collapse = TRUE,
-  comment = "#>",
-  fig.path = "man/figures/README-",
-  out.width = "100%"
-)
-```
 
 # issueipe
 
 <!-- badges: start -->
+
 [![R-CMD-check](https://github.com/sooahnshin/issueipe/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/sooahnshin/issueipe/actions/workflows/R-CMD-check.yaml)
 <!-- badges: end -->
 
@@ -23,7 +12,8 @@ The goal of issueipe is to measure issue specific ideal points.
 
 ## Installation
 
-You can install the development version of issueipe from [GitHub](https://github.com/) with:
+You can install the development version of issueipe from
+[GitHub](https://github.com/) with:
 
 ``` r
 # install.packages("devtools")
