@@ -4,3 +4,14 @@
 .httr-oauth
 .DS_Store
 .quarto
+
+# Ignore object files
+*.o
+
+# Ignore shared libraries
+*.so
+*.dll
+
+# Ignore other files that are generated during a build
+*.d
+*.gcno
