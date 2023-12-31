@@ -1,3 +1,4 @@
-# issueipe (development version)
+# issueipe 0.1.0 (Release date: YYYY-MM-DD)
 
-* Initial CRAN submission.
+* Initialized the package.
+* [Other notes about the package...]

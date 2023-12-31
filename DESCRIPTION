@@ -4,7 +4,7 @@ Version: 0.0.0.9000
 Authors@R: 
     person("Sooahn", "Shin", , "sooahnshin@g.harvard.edu", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0001-6213-2197"))
-Description: Implements issue specific item response theory model
+Description: Implements issue specific item response theory model.
 License: GPL (>= 3)
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
