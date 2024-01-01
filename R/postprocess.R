@@ -218,7 +218,7 @@ make_posterior_summary_postprocessed <- function(stan_fit, constraints, issue_la
   x1_pp <- process_data(samples_pp$x[, , 1], "x", "legis_index", posterior_summary$x |> filter(.data$dimension == 1) |> pull(.data$legis_label), dimension = 1)
   x2_pp <- process_data(samples_pp$x[, , 2], "x", "legis_index", posterior_summary$x |> filter(.data$dimension == 2) |> pull(.data$legis_label), dimension = 2)
 
-  x_pp <- bind_rows(.data$x1_pp, .data$x2_pp) |>
+  x_pp <- bind_rows(x1_pp, x2_pp) |>
     arrange(.data$legis_index)
 
   posterior_summary$theta_postprocessed <- theta_pp
