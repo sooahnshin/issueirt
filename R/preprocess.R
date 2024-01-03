@@ -154,6 +154,7 @@ make_stan_input <- function(issue_code_vec, rollcall, ideal, a = 0.01, b = 0.001
   if (length(z) != M) {
     stop("Length of z and the number of roll calls must be the same.")
   }
+  if (dim(ideal$betabar)[1] != M) stop("Number of rollcalls in rollcall and ideal must be the same.")
   N <- J * M
   j <- rep(1:J, M)
   m <- rep(1:M, each = J)
