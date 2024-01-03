@@ -2,6 +2,7 @@
 
 export(affine_transformation)
 export(cartesian_to_polar)
+export(check_unanimous)
 export(cosine_similarity)
 export(filter_votes)
 export(find_constraints)

@@ -1,3 +1,31 @@
+
+#' Check Unanimous Votes
+#' 
+#' This function checks if there are any roll calls where all legislators vote the same way.
+#' 
+#' @param votes A matrix of votes (output of `pscl::rollcall(...)$votes`; recommended to use `filter_votes` first).
+#' @param yea_code A vector of values in `votes` that are coded as yea (default: 1).
+#' @param nay_code A vector of values in `votes` that are coded as nay (default: 0).
+#' @return A vector of roll call names where all legislators vote the same way.
+#' @export
+check_unanimous <- function(votes, yea_code = 1, nay_code = 0) {
+  votes_vec <- as.vector(votes)
+  votes_vec[!votes_vec %in% c(yea_code, nay_code)] <- NA
+  votes_vec[votes_vec == yea_code] <- 1
+  votes_vec[votes_vec == nay_code] <- 0
+  votes_matrix <- matrix(votes_vec, nrow = nrow(votes), ncol = ncol(votes))
+
+  unanimous_yea_cols <- colnames(votes)[which(colSums(votes_matrix == 1, na.rm = TRUE) == 0)]
+  unanimous_nay_cols <- colnames(votes)[which(colSums(votes_matrix == 0, na.rm = TRUE) == 0)]
+
+  unanimous_cols <- unique(c(unanimous_yea_cols, unanimous_nay_cols))
+
+  if (length(unanimous_cols) > 0) {
+    return(unanimous_cols)
+  } else {
+    return(NULL)
+  }
+}
 #' Preprocess Roll Call Data for Analysis
 #'
 #' This function preprocesses roll call data by filtering out votes based on specified criteria.
@@ -20,6 +48,13 @@ filter_votes <- function(rollcall, lop = 0, minvotes = 0) {
   votes_lop <- lop_denominator / lop_numerator
   votes_lop[lop_numerator == 0] <- 0
   votes_filtered <- votes_lop > lop
+  
+  tmp <- rollcall$votes[legis_filtered, votes_filtered]
+  flag <- check_unanimous(votes = tmp, yea_code = yea_code, nay_code = nay_code)
+  if(!is.null(flag)) {
+    votes_filtered[which(colnames(votes) %in% flag)] <- FALSE
+  }
+
   return(list(legis = legis_filtered, bills = votes_filtered))
 }
 #' Recode Roll Call Votes
