@@ -200,7 +200,10 @@ postprocess_xbar <- function(ideal, rollcall, pol_rc1, pol_rc2 = NULL, party_cod
 #' @param left_party_code A party code for the party that should be on the left of the horizontal dimension.
 #' @param top_party_code A party code for the party that should be on top of the vertical dimension (optional).
 #' @param top_perc The percentage of legislators to be included based on their total number of votes cast.
-#' @param x2_threshold The threshold for the vertical dimension for the first constraint.
+#' @param x2_threshold The threshold for the vertical dimension for the first constraint (left of triangle).
+#' @param x2_threshold_second The threshold for the vertical dimension for the second constraint (right of triangle).
+#' @param vert_flip Whether to flip the second coordinate.
+#' @param top_n A fraction of the data you want to select. For example, if top_n is set to 0.5, it means you want to select the top 50% of the legislators.
 #' @param as_list Boolean indicating whether to return the constraints as a list (default is FALSE).
 #' @return A tibble or list of legislator IDs along with their x1 and x2 coordinates based on the constraints.
 #' @importFrom dplyr filter arrange slice bind_rows tibble n
@@ -209,7 +212,8 @@ postprocess_xbar <- function(ideal, rollcall, pol_rc1, pol_rc2 = NULL, party_cod
 #' @importFrom stats quantile setNames
 #' @export
 find_constraints <- function(ideal, rollcall, pol_rc1, pol_rc2 = NULL, party_code_col = "party_code", left_party_code = 100,
-                             top_party_code = NULL, top_perc = 0.9, x2_threshold = 0, as_list = FALSE) {
+                             top_party_code = NULL, top_perc = 0.9, x2_threshold = 0, x2_threshold_second = NULL,
+                             vert_flip = FALSE, top_n = 0.1, as_list = FALSE) {
   if(is.null(pol_rc1)) stop("pol_rc1 must be specified")
   if(is.null(pol_rc2) & is.null(top_party_code)) stop("pol_rc2 or top_party_code must be specified")
 
@@ -223,19 +227,30 @@ find_constraints <- function(ideal, rollcall, pol_rc1, pol_rc2 = NULL, party_cod
   xbar_top <- xbar[legis_total_votes > quantile(legis_total_votes, probs = 1 - top_perc),]
   xbar_top <- tibble(legis_id = rownames(xbar_top), x1 = xbar_top[,1], x2 = xbar_top[,2])
 
+  if(is.null(x2_threshold_second)) {
+    x2_threshold_second <- Inf
+  }
+
   # Identify constraints based on specified criteria
   constraint <- xbar_top |>
     filter(.data$x2 < x2_threshold) |>
     arrange(.data$x1) |>
-    slice(ceiling(0.1 * n()))
+    slice(ceiling(top_n * n()))
   constraint <- xbar_top |>
+    filter(.data$x2 < x2_threshold_second) |>
     arrange(desc(.data$x1)) |>
-    slice(ceiling(0.1 * n())) |>
+    slice(ceiling(top_n * n())) |>
     bind_rows(constraint)
   constraint <- xbar_top |>
     arrange(desc(.data$x2)) |>
-    slice(ceiling(0.1 * n())) |>
+    slice(ceiling(top_n * n())) |>
     bind_rows(constraint)
+
+  # Flip vertical axis if required
+  if(vert_flip) {
+    constraint <- constraint |>
+      mutate(x2 = -.data$x2)
+  }
 
   # Convert to list format if required
   if(as_list) {

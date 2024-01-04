@@ -14,6 +14,9 @@ find_constraints(
   top_party_code = NULL,
   top_perc = 0.9,
   x2_threshold = 0,
+  x2_threshold_second = NULL,
+  vert_flip = FALSE,
+  top_n = 0.1,
   as_list = FALSE
 )
 }
@@ -34,7 +37,13 @@ find_constraints(
 
 \item{top_perc}{The percentage of legislators to be included based on their total number of votes cast.}
 
-\item{x2_threshold}{The threshold for the vertical dimension for the first constraint.}
+\item{x2_threshold}{The threshold for the vertical dimension for the first constraint (left of triangle).}
+
+\item{x2_threshold_second}{The threshold for the vertical dimension for the second constraint (right of triangle).}
+
+\item{vert_flip}{Whether to flip the second coordinate.}
+
+\item{top_n}{A fraction of the data you want to select. For example, if top_n is set to 0.5, it means you want to select the top 50\% of the legislators.}
 
 \item{as_list}{Boolean indicating whether to return the constraints as a list (default is FALSE).}
 }
