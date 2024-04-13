@@ -1,11 +1,11 @@
-#' The 'issueipe' package.
+#' The 'issueirt' package.
 #'
 #' @description A DESCRIPTION OF THE PACKAGE
 #'
 #' @docType package
-#' @name issueipe-package
-#' @aliases issueipe
-#' @useDynLib issueipe, .registration = TRUE
+#' @name issueirt-package
+#' @aliases issueirt
+#' @useDynLib issueirt, .registration = TRUE
 #' @import methods
 #' @import Rcpp
 #' @importFrom rstan sampling

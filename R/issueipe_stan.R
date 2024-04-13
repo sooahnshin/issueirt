@@ -14,7 +14,7 @@
 #' @param ... Other arguments to be passed to `rstan::sampling`.
 #'
 #' @return A Stan fit object.
-#' @useDynLib issueipe, .registration=TRUE
+#' @useDynLib issueirt, .registration=TRUE
 #' @export
 issueipe_stan <- function(
     data,
@@ -26,7 +26,7 @@ issueipe_stan <- function(
     seed = 1,
     ...) {
   stan_fit <- rstan::sampling(
-    object = stanmodels$issueipe,
+    object = stanmodels$issueirt,
     data = data,
     init = init,
     chains = chains,
