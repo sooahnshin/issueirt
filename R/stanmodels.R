@@ -4,7 +4,7 @@
 stanmodels <- c("issueirt")
 
 # load each stan module
-Rcpp::loadModule("stan_fit4issueipe_mod", what = TRUE)
+Rcpp::loadModule("stan_fit4issueirt_mod", what = TRUE)
 
 # instantiate each stanmodel object
 stanmodels <- sapply(stanmodels, function(model_name) {

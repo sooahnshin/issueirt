@@ -12,14 +12,14 @@ Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
 
-RcppExport SEXP _rcpp_module_boot_stan_fit4issueipe_mod();
+RcppExport SEXP _rcpp_module_boot_stan_fit4issueirt_mod();
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_rcpp_module_boot_stan_fit4issueipe_mod", (DL_FUNC) &_rcpp_module_boot_stan_fit4issueipe_mod, 0},
+    {"_rcpp_module_boot_stan_fit4issueirt_mod", (DL_FUNC) &_rcpp_module_boot_stan_fit4issueirt_mod, 0},
     {NULL, NULL, 0}
 };
 
-RcppExport void R_init_issueipe(DllInfo *dll) {
+RcppExport void R_init_issueirt(DllInfo *dll) {
     R_registerRoutines(dll, NULL, CallEntries, NULL, NULL);
     R_useDynamicSymbols(dll, FALSE);
 }

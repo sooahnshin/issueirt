@@ -16,7 +16,7 @@
 #' @return A Stan fit object.
 #' @useDynLib issueirt, .registration=TRUE
 #' @export
-issueipe_stan <- function(
+issueirt_stan <- function(
     data,
     init,
     chains = 2,
