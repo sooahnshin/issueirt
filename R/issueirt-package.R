@@ -2,7 +2,7 @@
 #'
 #' @description A DESCRIPTION OF THE PACKAGE
 #'
-#' @docType package
+#' @docType _PACKAGE
 #' @name issueirt-package
 #' @aliases issueirt
 #' @useDynLib issueirt, .registration = TRUE
