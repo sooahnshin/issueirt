@@ -1,4 +1,7 @@
-# issueirt 0.1.0 (Release date: YYYY-MM-DD)
+# issueirt 0.0.0.9000
 
 * Initialized the package.
-* [Other notes about the package...]
+
+# issueirt 0.0.1
+
+* Added a dynamic model.

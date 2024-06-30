@@ -1,8 +1,8 @@
 
 #' Check Unanimous Votes
-#' 
+#'
 #' This function checks if there are any roll calls where all legislators vote the same way.
-#' 
+#'
 #' @param votes A matrix of votes (output of `pscl::rollcall(...)$votes`; recommended to use `filter_votes` first).
 #' @param yea_code A vector of values in `votes` that are coded as yea (default: 1).
 #' @param nay_code A vector of values in `votes` that are coded as nay (default: 0).
@@ -48,7 +48,7 @@ filter_votes <- function(rollcall, lop = 0, minvotes = 0) {
   votes_lop <- lop_denominator / lop_numerator
   votes_lop[lop_numerator == 0] <- 0
   votes_filtered <- votes_lop > lop
-  
+
   tmp <- rollcall$votes[legis_filtered, votes_filtered]
   flag <- check_unanimous(votes = tmp, yea_code = yea_code, nay_code = nay_code)
   if(!is.null(flag)) {
@@ -210,13 +210,13 @@ make_stan_input <- function(issue_code_vec, rollcall, ideal, a = 0.01, b = 0.001
     M = M,
     N = N,
     N_obs = N_obs,
-    N_mis = N_mis,
+    # N_mis = N_mis,
     K = K,
     j = j,
     m = m,
     y_obs = y_obs,
     idx_obs = idx_obs,
-    idx_mis = idx_mis,
+    # idx_mis = idx_mis,
     z = z,
     a = a,
     b = b
