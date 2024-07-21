@@ -3,13 +3,13 @@ data {
  int<lower=1> M; // Roll calls
  int<lower=1> N; // Num of observations (< M*J)
  int<lower=1> N_obs; // Num of observed
- // int<lower=1> N_mis; // Num of missing
+ int<lower=1> N_mis; // Num of missing
  int<lower=1> K; // Number of unique issues codes
  int<lower=1, upper=J> j[N]; // Legislator for observation n
  int<lower=1, upper=M> m[N]; // Roll call for observation n
  int<lower=0, upper=1> y_obs[N_obs]; // Vote of observation n
  int<lower=1> idx_obs[N_obs]; // Index of observed
- // int<lower=1> idx_mis[N_mis]; // Index of missing
+ int<lower=1> idx_mis[N_mis]; // Index of missing
  int<lower=1, upper=K> z[M]; // Issue codes for roll call m
  real<lower=0> a; // Hyperparameter for rho
  real<lower=0> b; // Hyperparameter for theta
@@ -65,9 +65,9 @@ model {
     y_obs[n] ~ bernoulli(Phi(dot_product(x[j[idx_obs[n]]], [cos(u[m[idx_obs[n]]]), sin(u[m[idx_obs[n]]])]) * w[m[idx_obs[n]]] - alpha[m[idx_obs[n]]]));
   }
 }
-// generated quantities {
-//   int<lower=0, upper=1> y_mis[N_mis];
-//   for (n in 1:N_mis) { // Impute missing votes
-//     y_mis[n] = bernoulli_rng(Phi(dot_product(x[j[idx_mis[n]]], [cos(u[m[idx_mis[n]]]), sin(u[m[idx_mis[n]]])]) * w[m[idx_mis[n]]] - alpha[m[idx_mis[n]]]));
-//   }
-// }
+generated quantities {
+  int<lower=0, upper=1> y_mis[N_mis];
+  for (n in 1:N_mis) { // Impute missing votes
+    y_mis[n] = bernoulli_rng(Phi(dot_product(x[j[idx_mis[n]]], [cos(u[m[idx_mis[n]]]), sin(u[m[idx_mis[n]]])]) * w[m[idx_mis[n]]] - alpha[m[idx_mis[n]]]));
+  }
+}

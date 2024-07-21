@@ -1,0 +1,63 @@
+---
+title: "Using `issueirt`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{using_issueirt}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+## Overview
+
+This vignette provides a brief introduction to the `issueirt` package. The package is designed to fit `IssueIRT` model, a hierarchical Item Response Theory (IRT) model proposed by Shin (2024+). Specifically, `IssueIRT` estimates an issue-specific axis in a latent policy space, which represents a continuum extending from left to right positions on the issue, using roll-call votes and their issue labels. This approach first estimates multidimensional ideal points using all available voting data, which are then projected onto issue-specific axes to generate single-dimensional, issue-specific ideal points.
+
+In this vignette, we will be using a synthetic dataset to demonstrate how to fit the `IssueIRT` model using the `issueirt` package. The dataset is generated using the `generate_data` function, which is also included in the package. The `IssueIRT` model is then fit to the dataset using the `issueirt_stan` function, after a few preprocessing steps.
+
+### Installation
+
+You can install `issueirt` package from GitHub using the `devtools` package:
+
+```{r setup, eval=FALSE}
+# install.packages("devtools")
+devtools::install_github("sooahnshin/issueirt")
+```
+
+## Step 1: Prepare the data
+
+### Generate synthetic data
+
+First, we generate a synthetic dataset using the `generate_data` function. 
+
+```{r generate_data}
+library(issueirt)
+synth_data <- generate_data(seed = 02138,
+                            n = 100, 
+                            m = 250, 
+                            k = 3,
+                            kappa = 2, 
+                            rho = 15, 
+                            a = 0.01, 
+                            b = 0.001,
+                            theta = c(0,pi/4,pi/2))
+```
+
+Here are the details about the arguments:
+
+| Argument | Description |
+|----------|-------------|
+| `seed`   | Random seed for reproducibility |
+| `n`      | Number of legislators |
+| `m`      | Number of bills |
+| `k`      | Number of issue labels |
+| `kappa`  | Standard deviation of $w_j$ (determines the deviation of the distance between Yea and Nay positions) |
+| `rho`    | Concentration parameter of $u_j$ (determines the deviation of the roll call votes from its issue axis) |
+| `a`      | Hyperparameter for the prior of the issue vector ($\theta_z$) and its concentration parameter ($\rho$) |
+| `b`      | Hyperparameter for the prior of the issue vector ($\theta_z$) and its concentration parameter ($\rho$); $0<b<a$ |
+| `theta`  | True issue vectors, $\theta_z$ |

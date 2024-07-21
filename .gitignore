@@ -15,3 +15,6 @@
 # Ignore other files that are generated during a build
 *.d
 *.gcno
+inst/doc
+/doc/
+/Meta/
