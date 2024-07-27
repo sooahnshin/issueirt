@@ -242,8 +242,7 @@ generate_dynamic_data <- function(seed = 02138, n = 30, m = 270,
   n_mat <- matrix(NA, nrow = n_terms, ncol = 4)
   colnames(n_mat) <- c("n", "m", "n_obs", "n_mis")
   y_vec_obs_ls <- list()
-  filt_idx_obs_ls <- list()
-  filt_idx_mis_ls <- list()
+  y_vec_ls <- list()
 
   for(t in 1:n_terms) {
     y_mis <- Y_ls[[t]]
@@ -267,16 +266,18 @@ generate_dynamic_data <- function(seed = 02138, n = 30, m = 270,
     n_obs <- m * n - n_mis
     y_mis_ls[[t]] <- y_mis
     n_mat[t,] <- c(n, m, n_obs, n_mis)
+    y_vec_ls[[t]] <- y_vec
     y_vec_obs_ls[[t]] <- y_vec[!is.na(y_vec)]
-    filt_idx_obs_ls[[t]] <- which(!is.na(y_vec))
-    filt_idx_mis_ls[[t]] <- which(is.na(y_vec))
     filt_legis_ls[[t]] <- filt$legis
     filt_bills_ls[[t]] <- filt$bills
   }
   n_df <- as.data.frame(n_mat) |>
     dplyr::mutate(N = n*m)
-  j_vec <- map(1:n_terms, ~rep(1:n_df$n[.x], n_df$m[.x])) |> unlist()
-  m_vec <- map(1:n_terms, ~rep(1:n_df$m[.x], each = n_df$n[.x])) |> unlist()
+  j_vec <- map(1:n_terms, ~paste0(rep(1:n_df$n[.x], n_df$m[.x]), "_", .x)) |> unlist()
+  j_vec <- as.numeric(factor(j_vec, levels = legis_terms))
+  m_cumsum <- n_df$m |> cumsum()
+  m_cumsum_begin <- c(1, m_cumsum[1:(n_terms - 1)] + 1)
+  m_vec <- map(1:n_terms, ~rep(m_cumsum_begin[.x]:m_cumsum[.x], each = n_df$n[.x])) |> unlist()
   omega_vec <- rep(1, length(prior_idx))
   omega_vec[!is.na(prior_idx)] <- 0.01
   prior_idx[is.na(prior_idx)] <- sum(n_df$n) + 1
@@ -306,7 +307,7 @@ generate_dynamic_data <- function(seed = 02138, n = 30, m = 270,
     j = j_vec,
     m = m_vec,
     y_obs = unlist(y_vec_obs_ls),
-    idx_obs = unlist(filt_idx_obs_ls),
+    idx_obs = which(!is.na(unlist(y_vec_ls))),
     # idx_mis = unlist(filt_idx_mis_ls),
     z = z[unlist(filt_bills_ls)],
     a = a,
