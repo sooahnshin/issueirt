@@ -38,5 +38,8 @@ LinkingTo:
 SystemRequirements: GNU make
 Suggests: 
     knitr,
-    rmarkdown
+    rmarkdown,
+    patchwork,
+    posterior,
+    tibble
 VignetteBuilder: knitr

@@ -8,12 +8,13 @@ vignette: >
 ---
 
 ```{r, include = FALSE}
+options(rmarkdown.html_vignette.check_title = FALSE)
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>",
   warning = FALSE,
-  fig.width = 7,
-  fig.height = 5
+  fig.width = 14,
+  fig.height = 10
 )
 ```
 
@@ -29,7 +30,7 @@ You can install `issueirt` package from GitHub using the `devtools` package:
 
 ```{r setup, eval=FALSE}
 # install.packages("devtools")
-devtools::install_github("sooahnshin/issueirt")
+devtools::install_github("sooahnshin/issueirt@dev", build_vignettes = TRUE))
 ```
 
 ## Step 1: Prepare the data
@@ -70,7 +71,12 @@ We visualize the synthetic data for an illustration of how it looks like.
 
 ```{r visualize_true_helper}
 ## helper function to visualize the synthetic data
-library(tidyverse)
+library(dplyr)
+library(stringr)
+library(ggplot2)
+library(tidyr)
+library(tibble)
+library(purrr)
 theme_set(theme_classic(base_size = 15) + theme(legend.position = "bottom", plot.title = element_text(hjust = 0.5)))
 
 #' function to create group assignment
@@ -106,12 +112,12 @@ create_group <- function(synth_data, legis_id) {
 ```
 
 ```{r visualize_true}
-# assign legis/bill id
+## assign legis/bill id
 legis_id <- paste0("legis", 1:dim(synth_data$data$Y)[1])
 bill_id <- paste0("bill", 1:dim(synth_data$data$Y)[2])
 true_legis <- create_group(synth_data, legis_id)
 
-# visualize the synthetic data
+## visualize the synthetic data
 plot_ideal(ideal_point_1d = true_legis$V1, true_legis$V2,
            group = true_legis$group, p.title = "True Ideal Points",
            breaks.group = c("A", "B", "C"), values.shape = c(17,18,19), values.color = c("indianred", "steelblue", "darkgreen"))
@@ -128,7 +134,7 @@ Specifically, researcher may want to avoid using (1) lop-sided votes, or (2) leg
 To begin with, we create a `rollcall` object using the `pscl` package so that we can filter votes and legislators if needed.
 
 ```{r create_rollcall}
-# data.frame containing id and group information
+## data.frame containing id and group information
 raw_legis <- true_legis |>
   select(id, group)
 raw_bills <- tibble(id = bill_id)
@@ -142,8 +148,8 @@ Now we filter out votes and legislators before fitting the model as below.
 We recommend to use `filter_votes()` function to track the removed votes and legislators.
 
 ```{r filter_votes}
-# drop (1) unanimous votes and (2) legislators with marginal amount of votes (< 20)
-# update data.frame with filtered votes and legislators
+## drop (1) unanimous votes and (2) legislators with marginal amount of votes (< 20)
+## update data.frame with filtered votes and legislators
 filtered <- filter_votes(rc, lop = 0, minvotes = 20)
 bills <- raw_bills[filtered$bills,]
 legis <- raw_legis[filtered$legis,] 
@@ -192,7 +198,7 @@ First, we can use `ideal()` function from the `pscl` package to fit the model.
 You may want to increase the number of iterations, thinning, and burn-in based on the convergence diagnostics.
 
 ```{r starting_values}
-# fit the Bayesian IRT model
+## fit the Bayesian IRT model
 set.seed(1)
 ideal <- pscl::ideal(rc_input, dropList = list(lop = 0, legisMin = 0), # no need to further drop votes and legislators
                      priors = NULL, startvals = "eigen", # default priors and starting values
@@ -224,7 +230,7 @@ Based on these anchors, we post-process the Bayesian IRT model to generate the s
 We use `postProcess()` function from the `pscl` package.
 
 ```{r post_process_birt}
-# suppress redundant messages
+## suppress redundant messages
 invisible(capture.output({
   ideal_pp <- pscl::postProcess(ideal, constraints = const_ls)
 }))
@@ -279,10 +285,10 @@ However, the multidimensional ideal points are not invariant to rotational trans
 We can post-process the model using the user-supplied anchors and compute the posterior summaries of the estimated parameters as follows.
 
 ```{r post_process}
-missing_label <- make_missing_indicator(rc_input) # missing indicator (optional)
+# missing_label <- make_missing_indicator(rc_input) # missing indicator (optional)
 posterior_summary_pp <- make_posterior_summary_postprocessed(
   stan_fit = fit_sim, constraints = const_ls, issue_label = paste0("Issue ", 1:6),
-  rc_label = bills$id, legis_label = legis$id, missing_label = missing_label
+  rc_label = bills$id, legis_label = legis$id, missing_label = NULL
 )
 ```
 
@@ -313,7 +319,7 @@ p_ls <- plot_issueaxis(stan_input = stan_input,
 
 library(patchwork)
 wrap_plots(p_ls) +
-  plot_layout(ncol = 3, guides = "collect")
+  plot_layout(ncol = 2, guides = "collect")
 ```
 
 Here, each figure visualizes issue specific axis with the following elements:
@@ -369,22 +375,22 @@ As a warm-up, we start by computing the computation time.
 ```{r computation}
 library(rstan)
 elapsed_times <- get_elapsed_time(fit_sim)
-# convert into minutes
+## convert into minutes
 elapsed_times_min <- elapsed_times / 60
-# create a data frame for the table
+## create a data frame for the table
 summary_elapsed_times <- data.frame(
   Chain = 1:nrow(elapsed_times_min),
   Warmup = round(elapsed_times_min[, "warmup"], 2),
   Sampling = round(elapsed_times_min[, "sample"], 2)
 )
-# print table
+## print table
 summary_elapsed_times |> knitr::kable()
 ```
 
 We can compute $\hat{R}$ statistics and effective sample size (ESS) using functions from `posterior` package, for example.
 
 ```{r posterior_statstics_helper}
-# helper function to summarize draws
+## helper function to summarize draws
 #' function to summarize the convergence statistics
 #' @param draws_summary a data frame of draws summary
 #' @return a tibble
@@ -408,7 +414,7 @@ calculate_convergence_summary <- function(draws_summary) {
 
 
 ```{r posterior_statstics}
-# get posterior samples (not just summary as in the previous step)
+## get posterior samples (not just summary as in the previous step)
 posterior_samples <- post_process(stan_fit = fit_sim, constraints = const_ls, legis_label = legis$id, as_mcmc = TRUE)
 posterior_samples_list <- list(
   x1 = posterior_samples$x1,
@@ -417,11 +423,11 @@ posterior_samples_list <- list(
   u = posterior_samples$u
 )
 
-# convert to draws array format and summarize
+## convert to draws array format and summarize
 summarized_draws <- posterior_samples_list %>%
   map(~ posterior::summarise_draws(posterior::as_draws_array(.)))
 
-# quantiles of statistics for each type of parameters
+## quantiles of statistics for each type of parameters
 quantiles <- summarized_draws|>
   map_df(calculate_convergence_summary, .id = "Parameter") |>
   mutate(Parameter = case_when(
@@ -431,7 +437,7 @@ quantiles <- summarized_draws|>
     Parameter == "u" ~ "$u_{j}$"
   ))
 
-# print results in table
+## print results in table
 quantiles |> select(Parameter, contains("\\hat{R}")) |> knitr::kable(digits = 2)
 quantiles |> select(Parameter, contains("ESS")) |> knitr::kable()
 ```
