@@ -265,6 +265,7 @@ make_stan_input <- function(issue_code_vec, rollcall, ideal, a = 0.01, b = 0.001
 
   res <- list(data = stan, init = init)
 
+  class(res) <- c("issueirt_stan_input", "list")
   return(res)
 }
 

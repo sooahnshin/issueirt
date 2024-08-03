@@ -224,7 +224,7 @@ make_posterior_summary_postprocessed <- function(stan_fit, constraints, issue_la
   posterior_summary$theta_postprocessed <- theta_pp
   posterior_summary$u_postprocessed <- u_pp
   posterior_summary$x_postprocessed <- x_pp
+
+  class(posterior_summary) <- c("issueirt_posterior_summary", "list")
   return(posterior_summary)
 }
-
-
