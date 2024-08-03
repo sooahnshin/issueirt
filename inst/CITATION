@@ -1,0 +1,21 @@
+# 'CITATION' file for the 'issueirt' package
+
+citHeader("To cite `issueirt` in publications use the first entry below.
+Please also cite the methodology paper in the second entry.")
+
+bibentry(
+  bibtype = "Manual",
+  title = "{issueirt}: An R Package for Measuring Issue Specific Ideal Points from Roll Call Votes",
+  author = person("Sooahn", "Shin", email = "sooahnshin@fas.harvard.edu", role = c("aut", "cre")),
+  year = "2024",
+  note = "R package",
+  url = "https://github.com/sooahnshin/issueirt"
+)
+
+bibentry(
+  bibtype = "article",
+  title = "Measuring Issue Specific Ideal Points from Roll Call Votes",
+  author = person("Sooahn", "Shin", email = "sooahnshin@fas.harvard.edu", role = c("aut", "cre")),
+  year = "2024",
+  journal = "Working Paper"
+)

@@ -40,6 +40,7 @@ plot_ideal <- function(ideal_point_1d, ideal_point_2d, group,
 #' @param group A vector of group membership (optional).
 #' @param breaks.group A vector of group names for legend breaks (optional).
 #' @param values.shape A vector of shape values for each group (optional).
+#' @param values.color A vector of color values for each group (optional).
 #' @return A list of ggplot objects representing the issue specific axes.
 #' @importFrom ggplot2 ggplot geom_point coord_equal labs scale_shape_manual scale_color_manual aes
 #' @importFrom dplyr tibble
@@ -90,15 +91,15 @@ plot_issueaxis <- function(stan_input, posterior_summary,
     pull(issue_label)
   p_ls <- list()
   for(z in 1:max(z_vec)) {
-    theta_z <- theta_df |> filter(issue_index == z) |>
-      mutate(tan_z = tan(mean),
-             cos_z = cos(mean),
-             sin_z = sin(mean))
+    theta_z <- theta_df |> filter(.data$issue_index == z) |>
+      mutate(tan_z = tan(.data$mean),
+             cos_z = cos(.data$mean),
+             sin_z = sin(.data$mean))
 
-    u_z <- u_df |> filter(issue_index == z)  |>
-      mutate(tan_u = tan(mean),
-             cos_u = cos(mean),
-             sin_u = sin(mean))
+    u_z <- u_df |> filter(.data$issue_index == z)  |>
+      mutate(tan_u = tan(.data$mean),
+             cos_u = cos(.data$mean),
+             sin_u = sin(.data$mean))
     p_z <- p +
       geom_abline(aes(slope = tan_u, intercept = 0),
                   alpha = 0.1,
@@ -140,9 +141,9 @@ plot_issueirt <- function(issueirt,
     stop("issueirt must be a issueirt_ideal_points object")
   }
   issue_sorted <- issueirt |>
-    select(issue_index, issue_label) |>
+    select(.data$issue_index, .data$issue_label) |>
     distinct() |>
-    arrange(desc(issue_index))
+    arrange(desc(.data$issue_index))
   if("legis_group" %in% colnames(issueirt)) {
     p <- issueirt |>
       mutate(issue_index_plot = factor(issue_index,

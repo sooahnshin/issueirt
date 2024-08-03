@@ -19,6 +19,8 @@ get_ideal_points(
 
 \item{legis_label}{A vector of legislator labels.}
 
+\item{legis_group}{A vector of legislator group labels.}
+
 \item{save.samples}{A logical value indicating whether to save samples (optional).}
 }
 \value{

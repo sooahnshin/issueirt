@@ -26,6 +26,8 @@ plot_issueaxis(
 \item{breaks.group}{A vector of group names for legend breaks (optional).}
 
 \item{values.shape}{A vector of shape values for each group (optional).}
+
+\item{values.color}{A vector of color values for each group (optional).}
 }
 \value{
 A list of ggplot objects representing the issue specific axes.

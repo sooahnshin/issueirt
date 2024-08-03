@@ -2,7 +2,7 @@ Package: issueirt
 Title: Issue Specific Ideal Point Estimation
 Version: 0.0.1
 Authors@R: 
-    person("Sooahn", "Shin", , "sooahnshin@g.harvard.edu", role = c("aut", "cre"),
+    person("Sooahn", "Shin", , "sooahnshin@fas.harvard.edu", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0001-6213-2197"))
 Description: Implements issue specific item response theory model.
 License: GPL (>= 3)
@@ -41,5 +41,8 @@ Suggests:
     rmarkdown,
     patchwork,
     posterior,
-    tibble
+    tibble,
+    spelling
 VignetteBuilder: knitr
+Language: en-US
+LazyData: true
