@@ -407,6 +407,5 @@ issue_irt <- get_ideal_points(stan_fit = fit_dynamic,
                               legis_group = posterior_df_pp$group)
 plot_issueirt(issueirt = issue_irt |> filter(issue_label %in% c("H52_Monetary", "H53_Monetary", "H54_Monetary")), 
               p.title = "Monetary Policy Specific Ideal Points",
-              breaks.group = breaks.group, values.shape = values.shape, values.color = values.color) +
-  geom_point(alpha = 0.1)
+              breaks.group = breaks.group, values.shape = values.shape, values.color = values.color)
 ```
