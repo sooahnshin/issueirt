@@ -1,6 +1,7 @@
 ---
 title: "Dynamic `issueirt`"
 output: rmarkdown::html_vignette
+bibliography: references.bib
 vignette: >
   %\VignetteIndexEntry{dynamic_issueirt}
   %\VignetteEngine{knitr::rmarkdown}
@@ -42,6 +43,7 @@ devtools::install_github("sooahnshin/issueirt", build_vignettes = TRUE)
 ### The 52nd to 54th U.S. House of Representatives (1891 - 1896)
 
 **Data sources:**
+
 - Roll call votes: Lewis, Jeffrey B., Keith Poole, Howard Rosenthal, Adam Boche, Aaron Rudkin, and Luke Sonnet. (2024) \emph{Voteview: Congressional Roll-Call Votes Database.} \url{https://voteview.com/}
 - Issue labels: Bateman, David A, Ira Katznelson and John S Lapinski. (2022) "Issue codings for roll call in the U.S. House of Representatives and Senate between 1877 and 2011" \emph{American Institutions Project.} \url{http://www.davidalexbateman.net/congressional-data.html.}
 
