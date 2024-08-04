@@ -1,14 +1,12 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-# issueirt
+# issueirt: Measuring Issue Specific Ideal Points
 
 <!-- badges: start -->
 
 [![R-CMD-check](https://github.com/sooahnshin/issueirt/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/sooahnshin/issueirt/actions/workflows/R-CMD-check.yaml)
 <!-- badges: end -->
-
-The goal of issueirt is to measure issue specific ideal points.
 
 ## Installation
 
@@ -17,5 +15,7 @@ You can install the development version of issueirt from
 
 ``` r
 # install.packages("devtools")
-# devtools::install_github("sooahnshin/issueirt")
+devtools::install_github("sooahnshin/issueirt", build_vignettes = TRUE)
+vignette("using_issueirt")
+vignette("dynamic_issueirt")
 ```
