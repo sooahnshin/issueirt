@@ -59,7 +59,7 @@ filter_votes <- function(rollcall, lop = 0, minvotes = 0) {
 }
 #' Recode Roll Call Votes
 #'
-#' This function preprocesses roll call vote data by recoding votes to prevent sign flipping. It is designed to work with matrices of votes, typically obtained from `pscl::rollcall`.
+#' This function preprocesses roll call vote data by recoding votes to prevent sign flipping. It is designed to work with matrices of votes, those obtained from `pscl::rollcall` for example.
 #'
 #' @param votes A matrix of votes (output of `pscl::rollcall(...)$votes`; recommended to use `filter_votes` first).
 #' @param party_code A vector of party codes for each legislator.
@@ -135,7 +135,7 @@ recode_votes <- function(votes,
 }
 #' Recode Issue Codes for Stan
 #'
-#' This function recodes a vector of issue codes, typically as part of pre-processing for Stan model input.
+#' This function recodes a vector of issue codes, as part of pre-processing for Stan model input.
 #' It also generates a codebook for the recoded issue codes.
 #'
 #' @param issue_code_vec A vector of issue codes, expected to be a character vector.

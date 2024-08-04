@@ -48,8 +48,8 @@ plot_ideal <- function(ideal_point_1d, ideal_point_2d, group,
 plot_issueaxis <- function(stan_input, posterior_summary,
                        p.title = NULL,
                        group = NULL, breaks.group = NULL, values.shape = NULL, values.color = NULL) {
-  if(inherits(stan_input, "issueirt_stan_input") == FALSE) {
-    stop("stan_input must be a issueirt_stan_input object")
+  if(!inherits(stan_input, "dynamic_stan_input")&&!inherits(stan_input, "issueirt_stan_input")) {
+    stop("stan_input must be a issueirt_stan_input or dynamic_stan_input object")
   }
   if(inherits(posterior_summary, "issueirt_posterior_summary") == FALSE) {
     stop("posterior_summary must be a issueirt_posterior_summary object")

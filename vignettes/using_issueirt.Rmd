@@ -13,8 +13,8 @@ knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>",
   warning = FALSE,
-  fig.width = 10,
-  fig.height = 10
+  fig.width = 5,
+  fig.height = 5
 )
 ```
 
@@ -247,12 +247,22 @@ plot_ideal(ideal_point_1d = ideal_pp$xbar[,1], ideal_point_2d = ideal_pp$xbar[,2
 
 ## Step 4: Make inputs for the model
 
-Now, we are ready to make inputs for the `issueirt_stan` function.
+Now, we are ready to make inputs for the `issueirt_stan()` function.
+We prepare the issue labels first. In case of character issue labels, we can use `make_issue_labels()` function to convert them into numeric (non-negative integer) labels.
+
+```{r make_issue_labels}
+## make character issue code for an illustration
+synth_issue_code <- as.character(synth_data$stan$z)
+synth_issue_level <- as.character(unique(sort(synth_data$stan$z))) 
+## make issue code
+issue_code <- make_issue_code(issue_code_vec = synth_issue_code, levels = synth_issue_level)
+```
+
 We can use `make_stan_input()` function to create the inputs.
 
 ```{r make_stan_input}
 stan_input <- make_stan_input(
-  issue_code_vec = synth_data$stan$z, # user-supplied issue labels
+  issue_code_vec = issue_code$issue_code_vec, # user-supplied issue labels
   rollcall = rc_input, # rollcall object
   ideal = ideal_pp, # starting values
   a = 0.01, b = 0.001, rho_init = 10 # hyperparameters
@@ -264,16 +274,22 @@ stan_input <- make_stan_input(
 Finally, we fit the `IssueIRT` model using the `issueirt_stan` function.
 You may want to adjust the number of chains, warmup, and iterations based on the convergence diagnostics and the computational resources.
 
-```{r fit_model}
+```{r fit_model, eval=FALSE}
 fit_sim <- issueirt_stan(
   data = stan_input$data,   
   init = list(stan_input$init, stan_input$init), # starting values
   chains = 2,             # number of Markov chains
-  warmup = 10,           # number of warmup iterations per chain
-  iter = 20,             # total number of iterations per chain
+  warmup = 10,            # number of warmup iterations per chain
+  iter = 20,              # total number of iterations per chain
   cores = 2,              # number of cores (could use one per chain)
   seed = 1
 )
+```
+
+```{r call_fit, show=FALSE}
+## access the internal dataset
+## script is available at data-raw/synthetic_fit.R, which is same as the codes above
+fit_sim <- issueirt:::fit_sim
 ```
 
 ## Step 6: Post-process the model parameters
@@ -309,9 +325,9 @@ plot_ideal(ideal_point_1d = posterior_summary_pp$x_postprocessed |> filter(dimen
            breaks.group = c("A", "B", "C"), values.shape = c(17,18,19), values.color = c("indianred", "steelblue", "darkgreen"))
 ```
 
-We can also visualize issue specific axes using `plot_issueirt()` function.
+We can also visualize issue specific axes using `plot_issueaxis()` function.
 
-```{r visualize_issueirt}
+```{r visualize_issueirt, fig.width=10, fig.height=15}
 p_ls <- plot_issueaxis(stan_input = stan_input, 
               posterior_summary = posterior_summary_pp,
               group = legis$group, p.title = "IssueIRT",
@@ -319,7 +335,7 @@ p_ls <- plot_issueaxis(stan_input = stan_input,
 
 library(patchwork)
 wrap_plots(p_ls) +
-  plot_layout(ncol = 3, guides = "collect")
+  plot_layout(ncol = 2, guides = "collect")
 ```
 
 Here, each figure visualizes issue specific axis with the following elements:

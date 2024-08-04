@@ -42,7 +42,8 @@ for(i in 1:length(Hvotes_list)) {
       as.numeric(cast_code) == 0 ~ 3 # not a member
     )) %>%
     pivot_wider(names_from = "rollnumber", values_from = "cast_code") %>%
-    as.data.frame()
+    as.data.frame() %>%
+    arrange(icpsr)
   icpsr_vec <- H_votes$icpsr
   H_votes <- H_votes %>% select(-icpsr)
   rownames(H_votes) <- icpsr_vec
@@ -51,8 +52,7 @@ for(i in 1:length(Hvotes_list)) {
     filter(icpsr %in% icpsr_vec) %>%
     arrange(match(icpsr, icpsr_vec)) %>%
     left_join(Hparties_list[[i]] %>% select(party_code, party_name) %>% distinct(),
-              by = "party_code") %>%
-    mutate(icpsr = as.character(icpsr))
+              by = "party_code")
   H_bills <- Hrollcalls_list[[i]] %>%
     filter(rollnumber %in% rollnumber_vec) %>%
     arrange(match(rollnumber, rollnumber_vec))
