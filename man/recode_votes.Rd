@@ -36,5 +36,5 @@ recode_votes(
 A matrix of recoded votes. 1 indicates a liberal majority or conservative minority, and 0 indicates a conservative majority or liberal minority.
 }
 \description{
-This function preprocesses roll call vote data by recoding votes to prevent sign flipping. It is designed to work with matrices of votes, typically obtained from \code{pscl::rollcall}.
+This function preprocesses roll call vote data by recoding votes to prevent sign flipping. It is designed to work with matrices of votes, those obtained from \code{pscl::rollcall} for example.
 }

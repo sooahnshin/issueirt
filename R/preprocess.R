@@ -1,8 +1,8 @@
 
 #' Check Unanimous Votes
-#' 
+#'
 #' This function checks if there are any roll calls where all legislators vote the same way.
-#' 
+#'
 #' @param votes A matrix of votes (output of `pscl::rollcall(...)$votes`; recommended to use `filter_votes` first).
 #' @param yea_code A vector of values in `votes` that are coded as yea (default: 1).
 #' @param nay_code A vector of values in `votes` that are coded as nay (default: 0).
@@ -48,7 +48,7 @@ filter_votes <- function(rollcall, lop = 0, minvotes = 0) {
   votes_lop <- lop_denominator / lop_numerator
   votes_lop[lop_numerator == 0] <- 0
   votes_filtered <- votes_lop > lop
-  
+
   tmp <- rollcall$votes[legis_filtered, votes_filtered]
   flag <- check_unanimous(votes = tmp, yea_code = yea_code, nay_code = nay_code)
   if(!is.null(flag)) {
@@ -59,7 +59,7 @@ filter_votes <- function(rollcall, lop = 0, minvotes = 0) {
 }
 #' Recode Roll Call Votes
 #'
-#' This function preprocesses roll call vote data by recoding votes to prevent sign flipping. It is designed to work with matrices of votes, typically obtained from `pscl::rollcall`.
+#' This function preprocesses roll call vote data by recoding votes to prevent sign flipping. It is designed to work with matrices of votes, those obtained from `pscl::rollcall` for example.
 #'
 #' @param votes A matrix of votes (output of `pscl::rollcall(...)$votes`; recommended to use `filter_votes` first).
 #' @param party_code A vector of party codes for each legislator.
@@ -135,7 +135,7 @@ recode_votes <- function(votes,
 }
 #' Recode Issue Codes for Stan
 #'
-#' This function recodes a vector of issue codes, typically as part of pre-processing for Stan model input.
+#' This function recodes a vector of issue codes, as part of pre-processing for Stan model input.
 #' It also generates a codebook for the recoded issue codes.
 #'
 #' @param issue_code_vec A vector of issue codes, expected to be a character vector.
@@ -265,6 +265,7 @@ make_stan_input <- function(issue_code_vec, rollcall, ideal, a = 0.01, b = 0.001
 
   res <- list(data = stan, init = init)
 
+  class(res) <- c("issueirt_stan_input", "list")
   return(res)
 }
 

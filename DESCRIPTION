@@ -1,14 +1,14 @@
 Package: issueirt
 Title: Issue Specific Ideal Point Estimation
-Version: 0.0.0.9000
+Version: 0.0.1
 Authors@R: 
-    person("Sooahn", "Shin", , "sooahnshin@g.harvard.edu", role = c("aut", "cre"),
+    person("Sooahn", "Shin", , "sooahnshin@fas.harvard.edu", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0001-6213-2197"))
 Description: Implements issue specific item response theory model.
 License: GPL (>= 3)
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.2.3
+RoxygenNote: 7.3.1
 Biarch: true
 Depends: 
     R (>= 3.4.0)
@@ -36,3 +36,13 @@ LinkingTo:
     rstan (>= 2.18.1),
     StanHeaders (>= 2.18.0)
 SystemRequirements: GNU make
+Suggests: 
+    knitr,
+    rmarkdown,
+    patchwork,
+    posterior,
+    tibble,
+    spelling
+VignetteBuilder: knitr
+Language: en-US
+LazyData: true

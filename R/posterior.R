@@ -162,3 +162,72 @@ make_posterior_summary <- function(stan_fit, issue_label = NULL, rc_label = NULL
   )
   return(res)
 }
+
+#' Generate Issue Specific Ideal Points
+#'
+#' This function generates issue-specific ideal points based on the Stan fit object.
+#'
+#' @param stan_fit A Stan fit object.
+#' @param issue_label A vector of issue labels.
+#' @param legis_label A vector of legislator labels.
+#' @param legis_group A vector of legislator group labels.
+#' @param save.samples A logical value indicating whether to save samples (optional).
+#'
+#' @return A tibble of posterior summary for issue-specific ideal points.
+#' @importFrom rstan extract
+#' @importFrom dplyr bind_rows group_by summarise pull
+#' @importFrom purrr map
+#' @importFrom stats sd quantile
+#' @export
+get_ideal_points <- function(stan_fit, issue_label = NULL, legis_label = NULL, legis_group = NULL, save.samples = FALSE) {
+  theta_samples <- extract(stan_fit, "theta")$theta
+  k <- dim(theta_samples)[2]
+  if(is.null(issue_label)) {
+    issue_label <- paste0("Issue ", 1:k)
+  }
+  x_samples <- extract(stan_fit, "x")$x
+  n <- dim(x_samples)[2]
+  if(is.null(legis_label)) {
+    legis_label <- paste0("Legislator ", 1:n)
+  }
+  n_samples <- dim(theta_samples)[1]
+  issue_samples <- map(1:n_samples, function(i) {
+    theta <- theta_samples[i,]
+    x <- x_samples[i,,]
+    theta_xy <- polar_to_cartesian(r = 1, theta = theta)
+    projectedX <- x %*% t(theta_xy)
+    res <- tibble(parameter = "issue specific ideal point",
+                  legis_index = rep(1:n, k),
+                  legis_label = rep(legis_label, k),
+                  sample = matrix(projectedX, nrow = n*k, byrow = TRUE) |> as.vector(),
+                  issue_index = rep(1:length(theta), each = n),
+                  issue_label = rep(issue_label, each = n),
+                  iter = i)
+    return(res)
+  }) |> bind_rows()
+  issue_posterior <- issue_samples |>
+    group_by(.data$parameter, .data$legis_index, .data$legis_label, .data$issue_index, .data$issue_label) |>
+    summarise(
+      mean = mean(.data$sample),
+      sd = sd(.data$sample),
+      `2.5%` = quantile(.data$sample, probs = 0.025),
+      `25%` = quantile(.data$sample, probs = 0.25),
+      `50%` = quantile(.data$sample, probs = 0.5),
+      `75%` = quantile(.data$sample, probs = 0.75),
+      `97.5%` = quantile(.data$sample, probs = 0.975),
+      .groups = "drop")
+  if(!is.null(legis_group)) {
+    legis_group <- tibble(legis_index = 1:n, legis_group = legis_group)
+    issue_posterior <- issue_posterior |>
+      left_join(legis_group, by = "legis_index") |>
+      relocate(legis_group, .after = .data$legis_label)
+  }
+  class(issue_posterior) <- c("issueirt_ideal_points", "tbl_df", "tbl", "data.frame")
+  if(save.samples) {
+    res <- list(issue_posterior = issue_posterior, issue_samples = issue_samples)
+  } else {
+    res <- issue_posterior
+  }
+  return(res)
+}
+

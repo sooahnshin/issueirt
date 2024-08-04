@@ -16,6 +16,6 @@ and have a length equal to the number of unique values in \code{issue_code_vec}.
 A list containing the recoded issue code vector and a codebook (as a tibble) mapping the codes to labels.
 }
 \description{
-This function recodes a vector of issue codes, typically as part of pre-processing for Stan model input.
+This function recodes a vector of issue codes, as part of pre-processing for Stan model input.
 It also generates a codebook for the recoded issue codes.
 }
