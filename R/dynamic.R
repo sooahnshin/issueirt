@@ -14,7 +14,7 @@
 #' @param notInLegis_code A numeric value specifying the code for legislators who did not vote.
 #' @return A dynamic_rollcall object.
 #' @importFrom pscl rollcall
-#' @importFrom dplyr arrange pull sym mutate rename_with select across distinct
+#' @importFrom dplyr arrange pull sym mutate rename_with select across distinct full_join
 #' @importFrom purrr map reduce
 #' @export
 make_dynamic_rollcall <- function(votes_list,
@@ -113,8 +113,8 @@ make_dynamic_rollcall <- function(votes_list,
   })
 
   votes_df <- reduce(votes_df_list, full_join, by = "legis_id") |>
-    arrange(legis_id)
-  votes_mat <- votes_df |> select(-legis_id) |> as.matrix()
+    arrange(.data$legis_id)
+  votes_mat <- votes_df |> select(-.data$legis_id) |> as.matrix()
   rownames(votes_mat) <- votes_df$legis_id
 
   if(is.null(colname_party)) {
@@ -231,25 +231,25 @@ make_dynamic_stan_input <- function(dynamic_rollcall,
   }
   bills_df <- map(1:n_terms, ~bills_list[[.x]] |> mutate(tmp_term = term_name[.x])) |>
     bind_rows() |>
-    mutate(term_rollnumber = paste0(tmp_term, "_", !!sym(colname_bills))) %>%
-    relocate(term_rollnumber) |>
-    select(-tmp_term)
+    mutate(term_rollnumber = paste0(.data$tmp_term, "_", !!sym(colname_bills))) |>
+    relocate(.data$term_rollnumber) |>
+    select(-.data$tmp_term)
 
   ## full legis data
   legis_df <- map(1:n_terms, ~legis_list[[.x]] |> mutate(tmp_term = term_name[.x])) |>
     bind_rows() |>
-    mutate(term_legis = paste0(tmp_term, "_", !!sym(colname_legis))) %>%
-    relocate(term_legis) |>
-    select(-tmp_term)
+    mutate(term_legis = paste0(.data$tmp_term, "_", !!sym(colname_legis))) |>
+    relocate(.data$term_legis) |>
+    select(-.data$tmp_term)
 
   legis_term_df <- map(legis_list, ~ select(., !!sym(colname_legis))) |> bind_rows() |> distinct() |> arrange(!!sym(colname_legis))
 
   ## full issue data
   issue_codebook <- map(1:n_terms, ~issue_list[[.x]]$codebook |> mutate(term = term_name[.x])) |>
     bind_rows() |>
-    mutate(term_issue = paste0(term, "_", code),
-           term_label = paste0(term, "_", label)) %>%
-    relocate(term_issue)
+    mutate(term_issue = paste0(.data$term, "_", .data$code),
+           term_label = paste0(.data$term, "_", .data$label)) |>
+    relocate(.data$term_issue)
   issue_code_vec <- unlist(map(1:n_terms, ~paste0(term_name[.x], "_", issue_list[[.x]]$codebook$label[issue_list[[.x]]$issue_code_vec])))
   if(sum(n_df$m) != length(issue_code_vec)) {
     stop("Check issue_list: issue_list is an output of make_issue_code function and must have the same number of bills as votes_list")
@@ -258,21 +258,21 @@ make_dynamic_stan_input <- function(dynamic_rollcall,
                                    levels = issue_codebook$term_label)
   issue_code_df$codebook <- issue_code_df$codebook |>
     left_join(issue_codebook |>
-                select(term, label, term_label),
-              by = join_by(label == term_label)) |>
-    rename(category = label.y)
+                select(.data$term, .data$label, .data$term_label),
+              by = c("label" = "term_label")) |>
+    rename(category = .data$label.y)
 
   ## create stan data input
   for(t in 1:n_terms) {
     legis_term_df <- legis_term_df |>
       left_join(legis_list[[t]] |>
                   mutate(term = t) |>
-                  select(!!sym(colname_legis), term) |>
+                  select(!!sym(colname_legis), .data$term) |>
                   rename_with(~ paste0(term_name[t]), -!!sym(colname_legis)), by = colname_legis)
   }
-  t_ls <- legis_term_df %>%
-    select(all_of(term_name)) %>%
-    apply(1, function(row) row[!is.na(row)]) %>%
+  t_ls <- legis_term_df |>
+    select(all_of(term_name)) |>
+    apply(1, function(row) row[!is.na(row)]) |>
     lapply(as.numeric)
   names(t_ls) <- legis_term_df |> pull(colname_legis)
 
@@ -312,11 +312,11 @@ make_dynamic_stan_input <- function(dynamic_rollcall,
     a = a, b = b, rho_init = rho_init
   )
   stan_input$init$x <- tibble(legis = legis_terms) |>
-    separate(legis, into = c("legis", "term"), sep = "_") |>
+    separate(.data$legis, into = c("legis", "term"), sep = "_") |>
     left_join(tibble(legis = rc_input$legis.data |> pull(colname_legis) |> as.character(),
                      x1 = stan_input$init$x[,1], x2 = stan_input$init$x[,2]),
               by = "legis") |>
-    select(x1, x2) |>
+    select(.data$x1, .data$x2) |>
     as.matrix()
 
   res <- list()

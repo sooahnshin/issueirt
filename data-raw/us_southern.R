@@ -5,6 +5,13 @@ library(tidyverse)
 library(readxl)
 setwd("data-raw")
 
+## list of files used in this script
+# list.files(path = "us_southern", full.names = FALSE)
+# [1] "coding_scheme.xlsx"          "H052_members.csv"            "H052_parties.csv"            "H052_rollcalls.csv"
+# [5] "H052_votes.csv"              "H053_members.csv"            "H053_parties.csv"            "H053_rollcalls.csv"
+# [9] "H053_votes.csv"              "H054_members.csv"            "H054_parties.csv"            "H054_rollcalls.csv"
+# [13] "H054_votes.csv"              "house.rollcall.reduced.xlsx"
+
 ######################
 ## RCV
 ## data source:
@@ -12,14 +19,15 @@ setwd("data-raw")
 # Voteview: Congressional Roll-Call Votes Database. https://voteview.com/
 ######################
 
+
 ## load data
-Hvotes_list <- list.files(path = "us_southern", pattern="H.*_votes.csv", full.names = T) %>%
+Hvotes_list <- list.files(path = "us_southern", pattern="H.*_votes.csv", full.names = TRUE) %>%
   lapply(., read_csv, show_col_types = FALSE)
-Hmembers_list <- list.files(path = "us_southern", pattern="H.*_members.csv", full.names = T) %>%
+Hmembers_list <- list.files(path = "us_southern", pattern="H.*_members.csv", full.names = TRUE) %>%
   lapply(., read_csv, show_col_types = FALSE)
-Hparties_list <- list.files(path = "us_southern", pattern="H.*_parties.csv", full.names = T) %>%
+Hparties_list <- list.files(path = "us_southern", pattern="H.*_parties.csv", full.names = TRUE) %>%
   lapply(., read_csv, show_col_types = FALSE)
-Hrollcalls_list <- list.files(path = "us_southern", pattern="H.*_rollcalls.csv", full.names = T) %>%
+Hrollcalls_list <- list.files(path = "us_southern", pattern="H.*_rollcalls.csv", full.names = TRUE) %>%
   lapply(., read_csv, show_col_types = FALSE)
 
 us1890s_votes <- us1890s_legis <- us1890s_bills <- list()

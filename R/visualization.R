@@ -42,12 +42,13 @@ plot_ideal <- function(ideal_point_1d, ideal_point_2d, group,
 #' @param values.shape A vector of shape values for each group (optional).
 #' @param values.color A vector of color values for each group (optional).
 #' @return A list of ggplot objects representing the issue specific axes.
-#' @importFrom ggplot2 ggplot geom_point coord_equal labs scale_shape_manual scale_color_manual aes
+#' @importFrom ggplot2 ggplot geom_point coord_equal labs scale_shape_manual scale_color_manual unit aes arrow geom_abline geom_segment
 #' @importFrom dplyr tibble
 #' @export
 plot_issueaxis <- function(stan_input, posterior_summary,
                        p.title = NULL,
                        group = NULL, breaks.group = NULL, values.shape = NULL, values.color = NULL) {
+
   if(!inherits(stan_input, "dynamic_stan_input")&&!inherits(stan_input, "issueirt_stan_input")) {
     stop("stan_input must be a issueirt_stan_input or dynamic_stan_input object")
   }
@@ -55,21 +56,22 @@ plot_issueaxis <- function(stan_input, posterior_summary,
     stop("posterior_summary must be a issueirt_posterior_summary object")
   }
   z_vec <- stan_input$data$z
-  df <- tibble(ideal_point_1d = posterior_summary$x_postprocessed |> filter(dimension == 1) |> pull(mean),
-               ideal_point_2d = posterior_summary$x_postprocessed |> filter(dimension == 2) |> pull(mean),
+  df <- tibble(ideal_point_1d = posterior_summary$x_postprocessed |> filter(.data$dimension == 1) |> pull(.data$mean),
+               ideal_point_2d = posterior_summary$x_postprocessed |> filter(.data$dimension == 2) |> pull(.data$mean),
                group = group)
-
+  p.ratio <- sum(abs(range(df$ideal_point_1d)))/sum(abs(range(df$ideal_point_2d)))
   if(is.null(group)) {
     p <- df |>
       ggplot() +
-      geom_point(aes(x = ideal_point_1d, y = ideal_point_2d), color = "grey") +
-      coord_equal(ratio = sum(abs(range(df$ideal_point_1d)))/sum(abs(range(df$ideal_point_2d))))  +
+      geom_point(aes(x = .data$ideal_point_1d, y = .data$ideal_point_2d), color = "grey") +
+      coord_equal(ratio = p.ratio)  +
       labs(x = "Dimension 1", y = "Dimension 2")
   } else {
     p <- df |>
       ggplot() +
-      geom_point(aes(x = ideal_point_1d, y = ideal_point_2d, color = as.factor(group), shape = as.factor(group))) +
-      coord_equal(ratio = sum(abs(range(df$ideal_point_1d)))/sum(abs(range(df$ideal_point_2d))))  +
+      geom_point(aes(x = .data$ideal_point_1d, y = .data$ideal_point_2d,
+                     color = as.factor(.data$group), shape = as.factor(.data$group))) +
+      coord_equal(ratio = p.ratio)  +
       labs(x = "Dimension 1", y = "Dimension 2")
   }
   if(is.null(p.title)) {
@@ -87,8 +89,8 @@ plot_issueaxis <- function(stan_input, posterior_summary,
   u_df <- posterior_summary$u_postprocessed |>
     mutate(issue_index = z_vec)
   issue_label <- theta_df |>
-    arrange(issue_index) |>
-    pull(issue_label)
+    arrange(.data$issue_index) |>
+    pull(.data$issue_label)
   p_ls <- list()
   for(z in 1:max(z_vec)) {
     theta_z <- theta_df |> filter(.data$issue_index == z) |>
@@ -101,19 +103,19 @@ plot_issueaxis <- function(stan_input, posterior_summary,
              cos_u = cos(.data$mean),
              sin_u = sin(.data$mean))
     p_z <- p +
-      geom_abline(aes(slope = tan_u, intercept = 0),
+      geom_abline(aes(slope = .data$tan_u, intercept = 0),
                   alpha = 0.1,
                   data = u_z) +
       geom_segment(lineend = "butt", linejoin = "round",
                    color = "orange", alpha = 0.5,
                    arrow = arrow(length = unit(0.05, "inches")),
-                   aes(x = 0, y = 0, xend = cos_u, yend = sin_u),
+                   aes(x = 0, y = 0, xend = .data$cos_u, yend = .data$sin_u),
                    data = u_z) +
-      geom_abline(aes(slope = tan_z, intercept = 0), linewidth = 1.4, data = theta_z) +
+      geom_abline(aes(slope = .data$tan_z, intercept = 0), linewidth = 1.4, data = theta_z) +
       geom_segment(lineend = "butt", linejoin = "round",
                    color = "darkorange", linewidth = 1.5,
                    arrow = arrow(length = unit(0.2, "inches")),
-                   aes(x = 0, y = 0, xend = cos_z, yend = sin_z), data = theta_z) +
+                   aes(x = 0, y = 0, xend = .data$cos_z, yend = .data$sin_z), data = theta_z) +
       labs(title = paste0(p.title, " (", issue_label[z], ")"))
     p_ls[[z]] <- p_z
   }
@@ -146,19 +148,19 @@ plot_issueirt <- function(issueirt,
     arrange(desc(.data$issue_index))
   if("legis_group" %in% colnames(issueirt)) {
     p <- issueirt |>
-      mutate(issue_index_plot = factor(issue_index,
+      mutate(issue_index_plot = factor(.data$issue_index,
                                        levels = issue_sorted$issue_index,
                                        labels = issue_sorted$issue_label)) |>
-      mutate(Group = as.factor(legis_group)) |>
-      ggplot(aes(x = mean, y = issue_index_plot, color = Group, shape = Group)) +
+      mutate(Group = as.factor(.data$legis_group)) |>
+      ggplot(aes(x = .data$mean, y = .data$issue_index_plot, color = .data$Group, shape = .data$Group)) +
       geom_point(size = 3) +
       labs(x = "Issue Specific Ideal Point", y = "Issue", title = p.title)
   } else {
     p <- issueirt |>
-      mutate(issue_index_plot = factor(issue_index,
+      mutate(issue_index_plot = factor(.data$issue_index,
                                        levels = issue_sorted$issue_index,
                                        labels = issue_sorted$issue_label)) |>
-      ggplot(aes(x = mean, y = issue_index_plot)) +
+      ggplot(aes(x = .data$mean, y = .data$issue_index_plot)) +
       geom_point(size = 3) +
       labs(x = "Issue Specific Ideal Point", y = "Issue", title = p.title)
   }
