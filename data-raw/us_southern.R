@@ -19,7 +19,6 @@ setwd("data-raw")
 # Voteview: Congressional Roll-Call Votes Database. https://voteview.com/
 ######################
 
-
 ## load data
 Hvotes_list <- list.files(path = "us_southern", pattern="H.*_votes.csv", full.names = TRUE) %>%
   lapply(., read_csv, show_col_types = FALSE)
