@@ -5,3 +5,4 @@
 # issueirt 0.0.1
 
 * Added a dynamic model.
+* Added vignettes.
