@@ -24,9 +24,9 @@ knitr::opts_chunk$set(
 
 This vignette provides a tutorial on how to use the dynamic extension of `IssueIRT` model.
 Please refer to the `vignette("using_issueirt")` for the basic usage of the `IssueIRT` model.
-Further details on dynamic model can be found in @issueirt [-].
+Further details on dynamic model can be found in @issueirt.
 
-In this vignette, we will be revisiting the validation study of @issueirt [-]: The Rise of Populism and Sectional Division in the 1890s (The 52nd to 54th U.S. House of Representatives).
+In this vignette, we will be revisiting the validation study of @issueirt: The Rise of Populism and Sectional Division in the 1890s (The 52nd to 54th U.S. House of Representatives).
 **Please do not make substantive conclusions based on the results here since the sample sizes are kept small for illustration purposes.**
 
 ### Installation
