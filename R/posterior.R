@@ -41,7 +41,7 @@ make_missing_indicator <- function(rollcall) {
 #' @importFrom rstan summary
 #' @importFrom dplyr filter pull mutate relocate as_tibble rename
 #' @importFrom tidyr separate
-#' @importFrom stringr str_remove str_detect
+#' @importFrom stringr str_remove
 #' @importFrom rlang .data
 #' @export
 make_posterior_summary <- function(stan_fit, issue_label = NULL, rc_label = NULL, legis_label = NULL, missing_label = NULL) {
@@ -55,7 +55,7 @@ make_posterior_summary <- function(stan_fit, issue_label = NULL, rc_label = NULL
     mutate(dimension = str_remove(.data$dimension, "\\]"))
 
   theta_df <- posterior_df |>
-    filter(str_detect(.data$parameter, "theta")) |>
+    filter(.data$parameter == "theta") |>
     rename(issue_index = .data$dimension) |>
     mutate(issue_index = as.integer(.data$issue_index))
   k <- theta_df |>
@@ -79,7 +79,7 @@ make_posterior_summary <- function(stan_fit, issue_label = NULL, rc_label = NULL
     filter(.data$parameter != "theta")
 
   u_df <- posterior_df |>
-    filter(str_detect(.data$parameter, "u")) |>
+    filter(.data$parameter == "u") |>
     rename(rc_index = .data$dimension) |>
     mutate(rc_index = as.integer(.data$rc_index))
   m <- u_df |>

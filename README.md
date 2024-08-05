@@ -22,12 +22,11 @@ Reference:
 
 ## Installation
 
-You can install the development version of `issueirt` from
-[GitHub](https://github.com/) with:
+You can install the development version of `issueirt` with:
 
 ``` r
 # install.packages("devtools")
-devtools::install_github("sooahnshin/issueirt", build_vignettes = TRUE)
+devtools::install_github("sooahnshin/issueirt", build_vignettes = TRUE, dependencies = TRUE)
 vignette("using_issueirt")
 vignette("dynamic_issueirt")
 ```
@@ -72,9 +71,9 @@ theme_set(theme_classic(base_size = 15) +
 `IssueIRT` is a hierarchical Item Response Theory (IRT) model that
 estimates an **issue-specific axis** representing a continuum extending
 from left to right positions on the issue using (1) roll-call votes and
-(2) user-supplied issue labels. We can project legislators’ ideal points
-on the issue-specific axis to generate single-dimensional,
-**issue-specific ideal points** as visualized below.
+(2) user-supplied issue labels. We can project ideal points on the
+issue-specific axis to generate single-dimensional, **issue-specific
+ideal points** as visualized below.
 
 ### Visualization of Issue Specific Ideal Points
 
