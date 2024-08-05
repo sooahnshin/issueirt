@@ -133,12 +133,15 @@ plot_issueaxis <- function(stan_input, posterior_summary,
 #' @param breaks.group A vector of group names for legend breaks (optional).
 #' @param values.shape A vector of shape values for each group (optional).
 #' @param values.color A vector of color values for each group (optional).
+#' @param alpha The transparency of the points (optional).
+#' @param size The size of the points (optional).
 #' @return A ggplot object representing the issue specific ideal points.
 #' @importFrom ggplot2 ggplot geom_point labs scale_shape_manual scale_color_manual aes
 #' @importFrom dplyr select distinct arrange mutate
 #' @export
 plot_issueirt <- function(issueirt,
-                          p.title = NULL, breaks.group = NULL, values.shape = NULL, values.color = NULL) {
+                          p.title = NULL, breaks.group = NULL, values.shape = NULL, values.color = NULL,
+                          alpha = 1, size = 3) {
   if(inherits(issueirt, "issueirt_ideal_points") == FALSE) {
     stop("issueirt must be a issueirt_ideal_points object")
   }
@@ -153,7 +156,7 @@ plot_issueirt <- function(issueirt,
                                        labels = issue_sorted$issue_label)) |>
       mutate(Group = as.factor(.data$legis_group)) |>
       ggplot(aes(x = .data$mean, y = .data$issue_index_plot, color = .data$Group, shape = .data$Group)) +
-      geom_point(size = 3) +
+      geom_point(size = size, alpha = alpha) +
       labs(x = "Issue Specific Ideal Point", y = "Issue", title = p.title)
   } else {
     p <- issueirt |>
@@ -161,7 +164,7 @@ plot_issueirt <- function(issueirt,
                                        levels = issue_sorted$issue_index,
                                        labels = issue_sorted$issue_label)) |>
       ggplot(aes(x = .data$mean, y = .data$issue_index_plot)) +
-      geom_point(size = 3) +
+      geom_point(size = size, alpha = alpha) +
       labs(x = "Issue Specific Ideal Point", y = "Issue", title = p.title)
   }
   if(!is.null(values.shape)) {

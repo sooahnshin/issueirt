@@ -269,3 +269,77 @@ make_stan_input <- function(issue_code_vec, rollcall, ideal, a = 0.01, b = 0.001
   return(res)
 }
 
+#' Fix sign-flip based on the fit
+#'
+#' Update the votes based on the cosine similarity between the estimated direction
+#' of rollcall and the estimated direction of issue-specific axes. If the cosine similarity is negative,
+#' it is a sign of sign-flip. This function updates the votes to fix the sign-flip.
+#'
+#' @param votes A matrix of votes (output of `recode_votes`). It may only contain 0, 1, and NA.
+#' @param stan_input An issueirt_stan_input or dynamic_stan_input object.
+#' @param posterior_summary An issueirt_posterior_summary object.
+#' @return A matrix of updated votes. In case of dynamic model, it returns a list of matrices of updated votes.
+#'
+#' @importFrom dplyr mutate left_join pull rowwise
+#' @importFrom tidyr unnest_wider
+#' @importFrom purrr map map2
+#' @export
+update_recode_votes <- function(votes,
+                                stan_input,
+                                posterior_summary) {
+
+  single_flag <- inherits(stan_input, "issueirt_stan_input")
+  dynamic_flag <- inherits(stan_input, "dynamic_stan_input")
+
+  if(!single_flag && !dynamic_flag) {
+    stop("Input must be an object of class `issueirt_stan_input` or `dynamic_stan_input`")
+  }
+
+  ## check if the inputs are 0, 1 and NA
+  if(single_flag) {
+    if(!all(votes %in% c(0, 1, NA))) {
+      stop("votes must be 0, 1, or NA")
+    }
+  } else {
+    if(!all(unlist(votes) %in% c(0, 1, NA))) {
+      stop("votes must be 0, 1, or NA")
+    }
+  }
+
+  z_vec <- stan_input$data$z
+
+  theta_df <- posterior_summary$theta_postprocessed
+  u_df <- posterior_summary$u_postprocessed |>
+    mutate(issue_index = z_vec)
+  u_df <- u_df |>
+    left_join(theta_df |> select(.data$issue_index, .data$mean) |> rename(theta = .data$mean),
+              by = "issue_index")
+  cos_sim <- u_df |>
+    mutate(theta = polar_to_cartesian(1, .data$theta)) |>
+    unnest_wider(.data$theta, names_sep = "_") |>
+    mutate(u = polar_to_cartesian(1, .data$mean)) |>
+    unnest_wider(.data$u, names_sep = "_")  |>
+    rowwise() |>
+    mutate(cos_sim = cosine_similarity(.data$u_x, .data$u_y, .data$theta_x, .data$theta_y)) |>
+    pull(.data$cos_sim)
+
+  idx <- which(cos_sim < 0)
+  votes_copy <- votes
+  if(single_flag) {
+    votes_copy[, idx] <- map(votes_copy[, idx], ~recode_values) |>
+      do.call(cbind, .data)
+  } else {
+    m <- stan_input$misc$n_df$m
+    cumulative_sum <- cumsum(m)
+    matrix_idx <- findInterval(idx, cumulative_sum) + 1
+    column_idx <- idx - c(0, cumulative_sum)[matrix_idx]
+    invisible(map2(matrix_idx, column_idx, ~{
+      votes_copy[[.x]][, .y] <<- recode_values(votes_copy[[.x]][, .y])
+    }))
+  }
+  return(votes_copy)
+}
+
+recode_values <- function(x) {
+  ifelse(is.na(x), NA, ifelse(x == 0, 1, ifelse(x == 1, 0, x)))
+}

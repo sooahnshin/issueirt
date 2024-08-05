@@ -20,7 +20,7 @@ knitr::opts_chunk$set(
 
 ## Overview
 
-This vignette provides a brief introduction to the `issueirt` package. The package is designed to fit `IssueIRT` model, a hierarchical Item Response Theory (IRT) model proposed by [@issueirt]. Specifically, `IssueIRT` estimates an issue-specific axis in a latent policy space, which represents a continuum extending from left to right positions on the issue, using roll-call votes and their issue labels. This approach first estimates multidimensional ideal points using all available voting data, which are then projected onto issue-specific axes to generate single-dimensional, issue-specific ideal points.
+This vignette provides a brief introduction to the `issueirt` package. The package is designed to fit `IssueIRT` model, a hierarchical Item Response Theory (IRT) model proposed by @issueirt [-]. Specifically, `IssueIRT` estimates an issue-specific axis in a latent policy space, which represents a continuum extending from left to right positions on the issue, using roll-call votes and their issue labels. This approach first estimates multidimensional ideal points using all available voting data, which are then projected onto issue-specific axes to generate single-dimensional, issue-specific ideal points.
 
 In this vignette, we will be using a synthetic dataset to demonstrate how to fit the `IssueIRT` model using the `issueirt` package. The dataset is generated using the `generate_data` function, which is also included in the package. The `IssueIRT` model is then fit to the dataset using the `issueirt_stan` function, after a few preprocessing steps.
 

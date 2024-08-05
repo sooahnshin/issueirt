@@ -24,9 +24,9 @@ knitr::opts_chunk$set(
 
 This vignette provides a tutorial on how to use the dynamic extension of `IssueIRT` model.
 Please refer to the `vignette("using_issueirt")` for the basic usage of the `IssueIRT` model.
-Further details on dynamic model can be found in [@issueirt].
+Further details on dynamic model can be found in @issueirt [-].
 
-In this vignette, we will be revisiting the validation study of [@issueirt]: The Rise of Populism and Sectional Division in the 1890s (The 52nd to 54th U.S. House of Representatives).
+In this vignette, we will be revisiting the validation study of @issueirt [-]: The Rise of Populism and Sectional Division in the 1890s (The 52nd to 54th U.S. House of Representatives).
 **Please do not make substantive conclusions based on the results here since the sample sizes are kept small for illustration purposes.**
 
 ### Installation
@@ -314,8 +314,33 @@ Here, each figure visualizes monetary policy specific axis with the following el
 - Light orange arrows: direction of roll call axes ($u_j$)
 
 One thing to note is that the direction of some roll call axes in the 52nd and 53rd are in opposite direction to the issue specific axis. 
-You may want to revisit step 2 to recode those roll calls, and then proceed with the following steps.
+You may want to use the following code to update step 2 (fix sign-flip) accordingly, and then re-run the model.
 
+```{r update_sign_flip, eval=FALSE}
+us1890s_votes_recoded <- update_recode_votes(us1890s_votes_recoded, dynamic_stan_input, posterior_summary_pp)
+```
+
+With the updated votes, the results now look as below:
+
+```{r call_new_results}
+## call the updated results (refer to data-raw/us_southern_dynamic.R)
+fit_dynamic <- issueirt:::fit_dynamic_updated
+dynamic_stan_input <- issueirt:::dynamic_stan_input
+const_dynamic <- issueirt:::const_dynamic
+posterior_summary_pp <- issueirt:::posterior_summary_pp
+posterior_df_pp <- issueirt:::posterior_df_pp
+```
+
+```{r visualize_issueirt_updated, fig.width=10, fig.height=5}
+p_ls <- plot_issueaxis(stan_input = dynamic_stan_input, 
+                       posterior_summary = posterior_summary_pp,
+                       group = posterior_df_pp$group, p.title = "IssueIRT",
+                       breaks.group = breaks.group, values.shape = values.shape, values.color = rep("grey", length(breaks.group)))
+
+p_ls[["H52_Monetary"]] + p_ls[["H53_Monetary"]] + p_ls[["H54_Monetary"]] +
+  plot_layout(ncol = 3, guides = "collect") &
+  theme(legend.position='bottom')
+```
 
 ## Step 7: Compute posterior statistics
 
@@ -407,5 +432,6 @@ issue_irt <- get_ideal_points(stan_fit = fit_dynamic,
                               legis_group = posterior_df_pp$group)
 plot_issueirt(issueirt = issue_irt |> filter(issue_label %in% c("H52_Monetary", "H53_Monetary", "H54_Monetary")), 
               p.title = "Monetary Policy Specific Ideal Points",
-              breaks.group = breaks.group, values.shape = values.shape, values.color = values.color)
+              breaks.group = breaks.group, values.shape = values.shape, values.color = values.color,
+              alpha = 0.5, size = 3)
 ```

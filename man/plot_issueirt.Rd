@@ -9,7 +9,9 @@ plot_issueirt(
   p.title = NULL,
   breaks.group = NULL,
   values.shape = NULL,
-  values.color = NULL
+  values.color = NULL,
+  alpha = 1,
+  size = 3
 )
 }
 \arguments{
@@ -22,6 +24,10 @@ plot_issueirt(
 \item{values.shape}{A vector of shape values for each group (optional).}
 
 \item{values.color}{A vector of color values for each group (optional).}
+
+\item{alpha}{The transparency of the points (optional).}
+
+\item{size}{The size of the points (optional).}
 }
 \value{
 A ggplot object representing the issue specific ideal points.
