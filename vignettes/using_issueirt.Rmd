@@ -38,37 +38,25 @@ devtools::install_github("sooahnshin/issueirt", build_vignettes = TRUE, dependen
 
 ### Generate synthetic data
 
-First, we generate a synthetic dataset using the `generate_data` function. 
+First, we call a synthetic dataset generated with the `generate_data()` function. 
 
 ```{r generate_data}
 library(issueirt)
-synth_data <- generate_data(seed = 02138,
-                            n = 100,
-                            m = 150, 
-                            k = 6,
-                            kappa = 12,
-                            rho = 15,
-                            a = 0.01, 
-                            b = 0.001,
-                            theta = 0:5 * pi/6)
+synth_data <- issueirt:::synth_data
+
+## this data is generated using the following codes
+# synth_data <- generate_data(seed = 02138,
+#                             n = 100,
+#                             m = 150, 
+#                             k = 6,
+#                             kappa = 12,
+#                             rho = 15,
+#                             a = 0.01, 
+#                             b = 0.001,
+#                             theta = 0:5 * pi/6)
 ```
 
-Here are the details about the arguments:
-
-| Argument | Description |
-|----------|-------------|
-| `seed`   | Random seed for reproducibility |
-| `n`      | Number of legislators |
-| `m`      | Number of bills |
-| `k`      | Number of issue labels |
-| `kappa`  | Standard deviation of $w_j$ (determines the deviation of the distance between Yea and Nay positions) |
-| `rho`    | Concentration parameter of $u_j$ (determines the deviation of the roll call votes from its issue axis) |
-| `a`      | Hyperparameter for the prior of the issue vector ($\theta_z$) and its concentration parameter ($\rho$) |
-| `b`      | Hyperparameter for the prior of the issue vector ($\theta_z$) and its concentration parameter ($\rho$); $0<b<a$ |
-| `theta`  | True issue vectors, $\theta_z$ |
-
 We visualize the synthetic data for an illustration of how it looks like.
-
 
 ```{r visualize_true_helper}
 ## helper function to visualize the synthetic data
@@ -280,8 +268,8 @@ fit_sim <- issueirt_stan(
   data = stan_input$data,   
   init = list(stan_input$init, stan_input$init), # starting values
   chains = 2,             # number of Markov chains
-  warmup = 10,            # number of warmup iterations per chain
-  iter = 20,              # total number of iterations per chain
+  warmup = 5,            # number of warmup iterations per chain
+  iter = 10,              # total number of iterations per chain
   cores = 2,              # number of cores (could use one per chain)
   seed = 1
 )

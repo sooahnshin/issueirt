@@ -125,4 +125,4 @@ fit_sim <- issueirt_stan(
 )
 
 ## save
-usethis::use_data(fit_sim, overwrite = TRUE, internal = TRUE)
+usethis::use_data(fit_sim, synth_data, overwrite = TRUE, internal = TRUE)

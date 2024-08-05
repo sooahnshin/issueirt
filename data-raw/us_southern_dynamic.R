@@ -101,8 +101,8 @@ fit_dynamic <- issueirt_dynamic_stan(
 )
 
 ## save
-load("R/sysdata.rda") # to load fit_sim from synthetic_fit.R
-usethis::use_data(fit_dynamic, fit_sim, overwrite = TRUE, internal = TRUE)
+load("R/sysdata.rda") # to load fit_sim & synth_data from synthetic_fit.R
+usethis::use_data(fit_dynamic, fit_sim, synth_data, overwrite = TRUE, internal = TRUE)
 
 
 ##################################################
@@ -215,7 +215,7 @@ p_ls[["H52_Monetary"]] + p_ls[["H53_Monetary"]] + p_ls[["H54_Monetary"]] +
   theme(legend.position='bottom')
 
 ## save
-usethis::use_data(fit_dynamic, fit_sim,
+usethis::use_data(fit_dynamic, fit_sim, synth_data,
                   fit_dynamic_updated,
                   dynamic_stan_input, const_dynamic,
                   posterior_summary_pp, posterior_df_pp,
