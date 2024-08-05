@@ -1,6 +1,7 @@
 ---
 title: "Using `issueirt`"
 output: rmarkdown::html_vignette
+bibliography: references.bib
 vignette: >
   %\VignetteIndexEntry{using_issueirt}
   %\VignetteEngine{knitr::rmarkdown}
