@@ -27,6 +27,7 @@ You can install the development version of `issueirt` with:
 ``` r
 # install.packages("devtools")
 devtools::install_github("sooahnshin/issueirt", build_vignettes = TRUE, dependencies = TRUE)
+library(issueirt)
 vignette("using_issueirt")
 vignette("dynamic_issueirt")
 ```
