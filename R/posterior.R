@@ -205,6 +205,9 @@ get_ideal_points <- function(stan_fit, issue_label = NULL, legis_label = NULL, l
                   iter = i)
     return(res)
   }) |> bind_rows()
+  term_name <- gsub("_.*", "", issue_samples$issue_label) |> unique()
+  issue_samples <- issue_samples |>
+    filter(term_name[as.integer(gsub(".*_", "", .data$legis_label))] == gsub("_.*", "", .data$issue_label))
   issue_posterior <- issue_samples |>
     group_by(.data$parameter, .data$legis_index, .data$legis_label, .data$issue_index, .data$issue_label) |>
     summarise(
