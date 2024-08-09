@@ -299,15 +299,21 @@ We can also visualize issue specific axes using `plot_issueaxis()` function.
 p_ls <- plot_issueaxis(stan_input = dynamic_stan_input, 
                        posterior_summary = posterior_summary_pp,
                        group = posterior_df_pp$group, p.title = "IssueIRT",
-                       breaks.group = breaks.group, values.shape = values.shape, values.color = rep("grey", length(breaks.group)))
+                       breaks.group = breaks.group, 
+                       values.shape = values.shape, 
+                       values.color = c("#C4B0A6", "#D1A4A2", "#B0AECF", 
+                                        "#B8B5CF", "#C2D7C1", "#777777"),
+                       plot.each.congress = TRUE)
 library(patchwork)
-p_ls[["H52_Monetary"]] + p_ls[["H53_Monetary"]] + p_ls[["H54_Monetary"]] +
-  plot_layout(ncol = 3, guides = "collect") &
-  theme(legend.position='bottom')
+(p_ls[["H52_Monetary"]] + theme(legend.position = "none")) + 
+  (p_ls[["H53_Monetary"]] + theme(legend.position='bottom')) + 
+  (p_ls[["H54_Monetary"]] + theme(legend.position = "none"))  +
+  plot_layout(ncol = 3, guides = "collect")
 ```
 
 Here, each figure visualizes monetary policy specific axis with the following elements:
 - Points: multidimensional ideal points
+  - small light grey: legislators that were not present in that term
 - Black line: issue specific axis
 - Grey lines: roll call axes in such issue area ($j$ such that $z_j = z$)
 - Dark orange arrow: direction of issue specific axis ($\theta_z$)
@@ -335,11 +341,16 @@ posterior_df_pp <- issueirt:::posterior_df_pp
 p_ls <- plot_issueaxis(stan_input = dynamic_stan_input, 
                        posterior_summary = posterior_summary_pp,
                        group = posterior_df_pp$group, p.title = "IssueIRT",
-                       breaks.group = breaks.group, values.shape = values.shape, values.color = rep("grey", length(breaks.group)))
+                       breaks.group = breaks.group, 
+                       values.shape = values.shape, 
+                       values.color = c("#C4B0A6", "#D1A4A2", "#B0AECF", 
+                                        "#B8B5CF", "#C2D7C1", "#777777"),
+                       plot.each.congress = TRUE)
 
-p_ls[["H52_Monetary"]] + p_ls[["H53_Monetary"]] + p_ls[["H54_Monetary"]] +
-  plot_layout(ncol = 3, guides = "collect") &
-  theme(legend.position='bottom')
+(p_ls[["H52_Monetary"]] + theme(legend.position = "none")) + 
+  (p_ls[["H53_Monetary"]] + theme(legend.position='bottom')) + 
+  (p_ls[["H54_Monetary"]] + theme(legend.position = "none"))  +
+  plot_layout(ncol = 3, guides = "collect")
 ```
 
 ## Step 7: Compute posterior statistics

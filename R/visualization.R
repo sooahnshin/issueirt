@@ -41,13 +41,15 @@ plot_ideal <- function(ideal_point_1d, ideal_point_2d, group,
 #' @param breaks.group A vector of group names for legend breaks (optional).
 #' @param values.shape A vector of shape values for each group (optional).
 #' @param values.color A vector of color values for each group (optional).
+#' @param plot.each.congress A logical value indicating whether to plot the legislators for each Congress, i.e. use grey dots for legislators that are not present in each congress (optional).
 #' @return A list of ggplot objects representing the issue specific axes.
 #' @importFrom ggplot2 ggplot geom_point coord_equal labs scale_shape_manual scale_color_manual unit aes arrow geom_abline geom_segment
 #' @importFrom dplyr tibble
 #' @export
 plot_issueaxis <- function(stan_input, posterior_summary,
-                       p.title = NULL,
-                       group = NULL, breaks.group = NULL, values.shape = NULL, values.color = NULL) {
+                           p.title = NULL,
+                           group = NULL, breaks.group = NULL, values.shape = NULL, values.color = NULL,
+                           plot.each.congress = FALSE) {
 
   if(!inherits(stan_input, "dynamic_stan_input")&&!inherits(stan_input, "issueirt_stan_input")) {
     stop("stan_input must be a issueirt_stan_input or dynamic_stan_input object")
@@ -55,35 +57,13 @@ plot_issueaxis <- function(stan_input, posterior_summary,
   if(inherits(posterior_summary, "issueirt_posterior_summary") == FALSE) {
     stop("posterior_summary must be a issueirt_posterior_summary object")
   }
+  if(!inherits(stan_input, "dynamic_stan_input")) {
+    plot.each.congress <- FALSE
+  }
   z_vec <- stan_input$data$z
   df <- tibble(ideal_point_1d = posterior_summary$x_postprocessed |> filter(.data$dimension == 1) |> pull(.data$mean),
                ideal_point_2d = posterior_summary$x_postprocessed |> filter(.data$dimension == 2) |> pull(.data$mean),
                group = group)
-  p.ratio <- sum(abs(range(df$ideal_point_1d)))/sum(abs(range(df$ideal_point_2d)))
-  if(is.null(group)) {
-    p <- df |>
-      ggplot() +
-      geom_point(aes(x = .data$ideal_point_1d, y = .data$ideal_point_2d), color = "grey") +
-      coord_equal(ratio = p.ratio)  +
-      labs(x = "Dimension 1", y = "Dimension 2")
-  } else {
-    p <- df |>
-      ggplot() +
-      geom_point(aes(x = .data$ideal_point_1d, y = .data$ideal_point_2d,
-                     color = as.factor(.data$group), shape = as.factor(.data$group))) +
-      coord_equal(ratio = p.ratio)  +
-      labs(x = "Dimension 1", y = "Dimension 2")
-  }
-  if(is.null(p.title)) {
-    p.title <- "Issue Specific Axis"
-  }
-
-  if(!is.null(values.shape)) {
-    p <- p + scale_shape_manual(name = "Group", breaks = breaks.group, values = values.shape)
-  }
-  if(!is.null(values.color)) {
-    p <- p + scale_color_manual(name = "Group", breaks = breaks.group, values = values.color)
-  }
 
   theta_df <- posterior_summary$theta_postprocessed
   u_df <- posterior_summary$u_postprocessed |>
@@ -91,7 +71,61 @@ plot_issueaxis <- function(stan_input, posterior_summary,
   issue_label <- theta_df |>
     arrange(.data$issue_index) |>
     pull(.data$issue_label)
+
+  p.ratio <- sum(abs(range(df$ideal_point_1d)))/sum(abs(range(df$ideal_point_2d)))
+  p_base <- list()
   p_ls <- list()
+
+  if(is.null(group)) {
+    p <- df |>
+      ggplot() +
+      geom_point(aes(x = .data$ideal_point_1d, y = .data$ideal_point_2d), color = "grey") +
+      coord_equal(ratio = p.ratio)  +
+      labs(x = "Dimension 1", y = "Dimension 2")
+    p_base <- replicate(max(z_vec), p, simplify = FALSE)
+  } else if(isFALSE(plot.each.congress)) {
+    p <- df |>
+      ggplot() +
+      geom_point(aes(x = .data$ideal_point_1d, y = .data$ideal_point_2d,
+                     color = as.factor(.data$group), shape = as.factor(.data$group))) +
+      coord_equal(ratio = p.ratio)  +
+      labs(x = "Dimension 1", y = "Dimension 2")
+    p_base <- replicate(max(z_vec), p, simplify = FALSE)
+  } else if(isTRUE(plot.each.congress)) {
+    df <- df |>
+      mutate(legis_term = stan_input$misc$legis_term) |>
+      separate(.data$legis_term, into = c("legis", "term"), sep = "_")
+    term_name <- gsub("_.*", "", stan_input$misc$bills_df$term_rollnumber) |>
+      unique()
+    df <- df |>
+      mutate(term_label = term_name[as.integer(.data$term)])
+    p_base <- map(stan_input$misc$issue_code_df$codebook$term, ~{
+      tmp <- df |>
+        mutate(group_term = ifelse(.data$term_label == .x, .data$group, NA))
+      tmp |>
+        filter(!is.na(.data$group_term)) |>
+        ggplot() +
+        geom_point(aes(x = .data$ideal_point_1d, y = .data$ideal_point_2d, shape = as.factor(.data$group)),
+                   color = "grey90", size = 0.5, data = tmp |> filter(is.na(.data$group_term)),
+                   show.legend = FALSE) +
+        geom_point(aes(x = .data$ideal_point_1d, y = .data$ideal_point_2d,
+                       color = as.factor(.data$group), shape = as.factor(.data$group))) +
+        coord_equal(ratio = p.ratio)  +
+        labs(x = "Dimension 1", y = "Dimension 2")
+    })
+  }
+
+  if(is.null(p.title)) {
+    p.title <- "Issue Specific Axis"
+  }
+  if(!is.null(values.shape)) {
+    p_base <- map(p_base, ~.x + scale_shape_manual(name = "Group",
+                                               breaks = breaks.group, values = values.shape, limits = breaks.group))
+  }
+  if(!is.null(values.color)) {
+    p_base <- map(p_base, ~.x + scale_color_manual(name = "Group",
+                                               breaks = breaks.group, values = values.color, limits = breaks.group))
+  }
   for(z in 1:max(z_vec)) {
     theta_z <- theta_df |> filter(.data$issue_index == z) |>
       mutate(tan_z = tan(.data$mean),
@@ -102,7 +136,7 @@ plot_issueaxis <- function(stan_input, posterior_summary,
       mutate(tan_u = tan(.data$mean),
              cos_u = cos(.data$mean),
              sin_u = sin(.data$mean))
-    p_z <- p +
+    p_z <- p_base[[z]] +
       geom_abline(aes(slope = .data$tan_u, intercept = 0),
                   alpha = 0.1,
                   data = u_z) +
@@ -120,6 +154,7 @@ plot_issueaxis <- function(stan_input, posterior_summary,
     p_ls[[z]] <- p_z
   }
   names(p_ls) <- issue_label
+
 
   return(p_ls)
 }

@@ -57,7 +57,8 @@ p_ls <- plot_issueaxis(stan_input        = issueirt:::dynamic_stan_input,
                                              "Ind. Democrat", "Populist", "Silver"), 
                        values.shape      = c(19, 15, 19, 19, 17, 17), 
                        values.color      = c("#C4B0A6", "#D1A4A2", "#B0AECF", 
-                                             "#B8B5CF", "#C2D7C1", "#777777"))
+                                             "#B8B5CF", "#C2D7C1", "#777777"),
+                       plot.each.congress = TRUE)
 
 library(patchwork)
 library(ggplot2)
@@ -65,14 +66,15 @@ theme_set(theme_classic(base_size = 15) +
           theme(legend.position = "bottom", plot.title = element_text(hjust = 0.5)))
 
 ## Monetary Policy Axis: 52nd to 54th H.R. (1891 - 1896)
-(p_ls[["H52_Monetary"]]   + labs(title = "52nd H.R.")) +
-  (p_ls[["H53_Monetary"]] + labs(title = "53rd H.R.")) +
-  (p_ls[["H54_Monetary"]] + labs(title = "54th H.R.")) +
+(p_ls[["H52_Monetary"]]   + labs(title = "52nd H.R.") + theme(legend.position = "none")) +
+  (p_ls[["H53_Monetary"]] + labs(title = "53rd H.R.") + theme(legend.position = "bottom")) +
+  (p_ls[["H54_Monetary"]] + labs(title = "54th H.R.") + theme(legend.position = "none")) +
   plot_layout(ncol = 3, guides = "collect") &
   plot_annotation(title = "Monetary Policy Axis")
 ```
 
 - Points: multidimensional ideal points
+  - small light grey: legislators that were not present in that term
 - Grey lines: monetary policy related roll-call axes 
 - **Black** line: monetary policy axis
 

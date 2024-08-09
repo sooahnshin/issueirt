@@ -11,7 +11,8 @@ plot_issueaxis(
   group = NULL,
   breaks.group = NULL,
   values.shape = NULL,
-  values.color = NULL
+  values.color = NULL,
+  plot.each.congress = FALSE
 )
 }
 \arguments{
@@ -28,6 +29,8 @@ plot_issueaxis(
 \item{values.shape}{A vector of shape values for each group (optional).}
 
 \item{values.color}{A vector of color values for each group (optional).}
+
+\item{plot.each.congress}{A logical value indicating whether to plot the legislators for each Congress, i.e. use grey dots for legislators that are not present in each congress (optional).}
 }
 \value{
 A list of ggplot objects representing the issue specific axes.
