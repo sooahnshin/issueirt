@@ -332,6 +332,7 @@ update_recode_votes <- function(votes,
     m <- stan_input$misc$n_df$m
     cumulative_sum <- cumsum(m)
     matrix_idx <- findInterval(idx, cumulative_sum) + 1
+    if(idx[length(idx)] == cumulative_sum[length(cumulative_sum)]) matrix_idx[length(matrix_idx)] <- matrix_idx[length(matrix_idx)] - 1
     column_idx <- idx - c(0, cumulative_sum)[matrix_idx]
     invisible(map2(matrix_idx, column_idx, ~{
       votes_copy[[.x]][, .y] <<- recode_values(votes_copy[[.x]][, .y])
