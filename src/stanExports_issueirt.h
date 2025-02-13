@@ -27,85 +27,276 @@ namespace model_issueirt_namespace {
 using stan::model::model_base_crtp;
 using namespace stan::math;
 stan::math::profile_map profiles__;
-static constexpr std::array<const char*, 78> locations_array__ =
+static constexpr std::array<const char*, 112> locations_array__ =
   {" (found before start of program)",
-  " (in 'issueirt', line 18, column 2 to column 16)",
-  " (in 'issueirt', line 19, column 2 to column 21)",
-  " (in 'issueirt', line 20, column 2 to column 24)",
-  " (in 'issueirt', line 21, column 2 to column 24)",
-  " (in 'issueirt', line 22, column 2 to column 20)",
-  " (in 'issueirt', line 23, column 2 to column 20)",
-  " (in 'issueirt', line 24, column 2 to column 21)",
-  " (in 'issueirt', line 25, column 2 to column 20)",
-  " (in 'issueirt', line 28, column 2 to column 27)",
-  " (in 'issueirt', line 29, column 2 to column 16)",
-  " (in 'issueirt', line 30, column 2 to column 23)",
-  " (in 'issueirt', line 31, column 2 to column 12)",
-  " (in 'issueirt', line 69, column 2 to column 37)",
-  " (in 'issueirt', line 33, column 4 to column 57)",
-  " (in 'issueirt', line 34, column 4 to column 59)",
-  " (in 'issueirt', line 32, column 17 to line 35, column 3)",
-  " (in 'issueirt', line 32, column 2 to line 35, column 3)",
-  " (in 'issueirt', line 37, column 4 to column 45)",
-  " (in 'issueirt', line 38, column 4 to column 47)",
-  " (in 'issueirt', line 36, column 17 to line 39, column 3)",
-  " (in 'issueirt', line 36, column 2 to line 39, column 3)",
-  " (in 'issueirt', line 71, column 4 to column 155)",
-  " (in 'issueirt', line 70, column 21 to line 72, column 3)",
-  " (in 'issueirt', line 70, column 2 to line 72, column 3)",
-  " (in 'issueirt', line 43, column 4 to column 26)",
-  " (in 'issueirt', line 44, column 4 to column 26)",
-  " (in 'issueirt', line 42, column 17 to line 45, column 3)",
-  " (in 'issueirt', line 42, column 2 to line 45, column 3)",
-  " (in 'issueirt', line 46, column 2 to column 55)",
-  " (in 'issueirt', line 48, column 4 to column 34)",
-  " (in 'issueirt', line 49, column 4 to column 31)",
-  " (in 'issueirt', line 53, column 4 to column 35)",
-  " (in 'issueirt', line 47, column 17 to line 54, column 3)",
-  " (in 'issueirt', line 47, column 2 to line 54, column 3)",
-  " (in 'issueirt', line 56, column 4 to column 30)",
-  " (in 'issueirt', line 57, column 4 to column 27)",
-  " (in 'issueirt', line 60, column 4 to column 39)",
-  " (in 'issueirt', line 61, column 4 to column 28)",
-  " (in 'issueirt', line 61, column 24 to column 25)",
-  " (in 'issueirt', line 62, column 4 to column 27)",
-  " (in 'issueirt', line 55, column 17 to line 63, column 3)",
-  " (in 'issueirt', line 55, column 2 to line 63, column 3)",
-  " (in 'issueirt', line 65, column 4 to column 151)",
-  " (in 'issueirt', line 64, column 21 to line 66, column 3)",
-  " (in 'issueirt', line 64, column 2 to line 66, column 3)",
-  " (in 'issueirt', line 2, column 1 to column 16)",
-  " (in 'issueirt', line 3, column 1 to column 16)",
-  " (in 'issueirt', line 4, column 1 to column 16)",
-  " (in 'issueirt', line 5, column 1 to column 20)",
-  " (in 'issueirt', line 6, column 1 to column 20)",
-  " (in 'issueirt', line 7, column 1 to column 16)",
-  " (in 'issueirt', line 8, column 25 to column 26)",
-  " (in 'issueirt', line 8, column 1 to column 28)",
-  " (in 'issueirt', line 9, column 25 to column 26)",
-  " (in 'issueirt', line 9, column 1 to column 28)",
-  " (in 'issueirt', line 10, column 29 to column 34)",
-  " (in 'issueirt', line 10, column 1 to column 36)",
-  " (in 'issueirt', line 11, column 22 to column 27)",
-  " (in 'issueirt', line 11, column 1 to column 29)",
-  " (in 'issueirt', line 12, column 22 to column 27)",
-  " (in 'issueirt', line 12, column 1 to column 29)",
-  " (in 'issueirt', line 13, column 25 to column 26)",
-  " (in 'issueirt', line 13, column 1 to column 28)",
-  " (in 'issueirt', line 14, column 1 to column 17)",
-  " (in 'issueirt', line 15, column 1 to column 17)",
-  " (in 'issueirt', line 18, column 13 to column 14)",
-  " (in 'issueirt', line 19, column 18 to column 19)",
-  " (in 'issueirt', line 20, column 21 to column 22)",
-  " (in 'issueirt', line 21, column 21 to column 22)",
-  " (in 'issueirt', line 22, column 17 to column 18)",
-  " (in 'issueirt', line 23, column 17 to column 18)",
-  " (in 'issueirt', line 24, column 18 to column 19)",
-  " (in 'issueirt', line 28, column 24 to column 25)",
-  " (in 'issueirt', line 29, column 13 to column 14)",
-  " (in 'issueirt', line 30, column 20 to column 21)",
-  " (in 'issueirt', line 31, column 9 to column 10)",
-  " (in 'issueirt', line 69, column 30 to column 35)"};
+  " (in 'issueirt', line 69, column 2 to column 16)",
+  " (in 'issueirt', line 70, column 2 to column 21)",
+  " (in 'issueirt', line 71, column 2 to column 24)",
+  " (in 'issueirt', line 72, column 2 to column 24)",
+  " (in 'issueirt', line 73, column 2 to column 20)",
+  " (in 'issueirt', line 74, column 2 to column 20)",
+  " (in 'issueirt', line 75, column 2 to column 21)",
+  " (in 'issueirt', line 76, column 2 to column 20)",
+  " (in 'issueirt', line 79, column 2 to column 27)",
+  " (in 'issueirt', line 80, column 2 to column 16)",
+  " (in 'issueirt', line 81, column 2 to column 23)",
+  " (in 'issueirt', line 82, column 2 to column 12)",
+  " (in 'issueirt', line 117, column 2 to column 37)",
+  " (in 'issueirt', line 84, column 4 to column 57)",
+  " (in 'issueirt', line 85, column 4 to column 59)",
+  " (in 'issueirt', line 83, column 17 to line 86, column 3)",
+  " (in 'issueirt', line 83, column 2 to line 86, column 3)",
+  " (in 'issueirt', line 88, column 4 to column 45)",
+  " (in 'issueirt', line 89, column 4 to column 47)",
+  " (in 'issueirt', line 87, column 17 to line 90, column 3)",
+  " (in 'issueirt', line 87, column 2 to line 90, column 3)",
+  " (in 'issueirt', line 119, column 4 to column 155)",
+  " (in 'issueirt', line 118, column 21 to line 120, column 3)",
+  " (in 'issueirt', line 118, column 2 to line 120, column 3)",
+  " (in 'issueirt', line 94, column 4 to column 26)",
+  " (in 'issueirt', line 95, column 4 to column 26)",
+  " (in 'issueirt', line 93, column 17 to line 96, column 3)",
+  " (in 'issueirt', line 93, column 2 to line 96, column 3)",
+  " (in 'issueirt', line 97, column 2 to column 55)",
+  " (in 'issueirt', line 99, column 4 to column 34)",
+  " (in 'issueirt', line 100, column 4 to column 31)",
+  " (in 'issueirt', line 101, column 4 to column 35)",
+  " (in 'issueirt', line 98, column 17 to line 102, column 3)",
+  " (in 'issueirt', line 98, column 2 to line 102, column 3)",
+  " (in 'issueirt', line 104, column 4 to column 30)",
+  " (in 'issueirt', line 105, column 4 to column 27)",
+  " (in 'issueirt', line 106, column 4 to column 59)",
+  " (in 'issueirt', line 109, column 4 to column 28)",
+  " (in 'issueirt', line 109, column 24 to column 25)",
+  " (in 'issueirt', line 110, column 4 to column 27)",
+  " (in 'issueirt', line 103, column 17 to line 111, column 3)",
+  " (in 'issueirt', line 103, column 2 to line 111, column 3)",
+  " (in 'issueirt', line 113, column 4 to column 151)",
+  " (in 'issueirt', line 112, column 21 to line 114, column 3)",
+  " (in 'issueirt', line 112, column 2 to line 114, column 3)",
+  " (in 'issueirt', line 53, column 1 to column 16)",
+  " (in 'issueirt', line 54, column 1 to column 16)",
+  " (in 'issueirt', line 55, column 1 to column 16)",
+  " (in 'issueirt', line 56, column 1 to column 20)",
+  " (in 'issueirt', line 57, column 1 to column 20)",
+  " (in 'issueirt', line 58, column 1 to column 16)",
+  " (in 'issueirt', line 59, column 25 to column 26)",
+  " (in 'issueirt', line 59, column 1 to column 28)",
+  " (in 'issueirt', line 60, column 25 to column 26)",
+  " (in 'issueirt', line 60, column 1 to column 28)",
+  " (in 'issueirt', line 61, column 29 to column 34)",
+  " (in 'issueirt', line 61, column 1 to column 36)",
+  " (in 'issueirt', line 62, column 22 to column 27)",
+  " (in 'issueirt', line 62, column 1 to column 29)",
+  " (in 'issueirt', line 63, column 22 to column 27)",
+  " (in 'issueirt', line 63, column 1 to column 29)",
+  " (in 'issueirt', line 64, column 25 to column 26)",
+  " (in 'issueirt', line 64, column 1 to column 28)",
+  " (in 'issueirt', line 65, column 1 to column 17)",
+  " (in 'issueirt', line 66, column 1 to column 17)",
+  " (in 'issueirt', line 69, column 13 to column 14)",
+  " (in 'issueirt', line 70, column 18 to column 19)",
+  " (in 'issueirt', line 71, column 21 to column 22)",
+  " (in 'issueirt', line 72, column 21 to column 22)",
+  " (in 'issueirt', line 73, column 17 to column 18)",
+  " (in 'issueirt', line 74, column 17 to column 18)",
+  " (in 'issueirt', line 75, column 18 to column 19)",
+  " (in 'issueirt', line 79, column 24 to column 25)",
+  " (in 'issueirt', line 80, column 13 to column 14)",
+  " (in 'issueirt', line 81, column 20 to column 21)",
+  " (in 'issueirt', line 82, column 9 to column 10)",
+  " (in 'issueirt', line 117, column 30 to column 35)",
+  " (in 'issueirt', line 12, column 6 to column 40)",
+  " (in 'issueirt', line 10, column 11 to line 13, column 5)",
+  " (in 'issueirt', line 9, column 6 to column 72)",
+  " (in 'issueirt', line 7, column 29 to line 10, column 5)",
+  " (in 'issueirt', line 7, column 11 to line 13, column 5)",
+  " (in 'issueirt', line 6, column 6 to column 27)",
+  " (in 'issueirt', line 4, column 23 to line 7, column 5)",
+  " (in 'issueirt', line 4, column 4 to line 13, column 5)",
+  " (in 'issueirt', line 3, column 46 to line 14, column 3)",
+  " (in 'issueirt', line 18, column 4 to column 16)",
+  " (in 'issueirt', line 19, column 4 to column 18)",
+  " (in 'issueirt', line 20, column 4 to column 18)",
+  " (in 'issueirt', line 22, column 4 to column 24)",
+  " (in 'issueirt', line 23, column 4 to column 26)",
+  " (in 'issueirt', line 24, column 4 to column 21)",
+  " (in 'issueirt', line 25, column 4 to column 21)",
+  " (in 'issueirt', line 26, column 4 to column 27)",
+  " (in 'issueirt', line 28, column 4 to column 17)",
+  " (in 'issueirt', line 29, column 4 to column 23)",
+  " (in 'issueirt', line 30, column 4 to column 23)",
+  " (in 'issueirt', line 31, column 4 to column 19)",
+  " (in 'issueirt', line 32, column 4 to column 20)",
+  " (in 'issueirt', line 33, column 4 to column 21)",
+  " (in 'issueirt', line 34, column 4 to column 20)",
+  " (in 'issueirt', line 35, column 4 to column 20)",
+  " (in 'issueirt', line 37, column 4 to column 37)",
+  " (in 'issueirt', line 39, column 4 to column 42)",
+  " (in 'issueirt', line 41, column 4 to column 51)",
+  " (in 'issueirt', line 43, column 4 to column 28)",
+  " (in 'issueirt', line 16, column 53 to line 44, column 3)",
+  " (in 'issueirt', line 47, column 4 to column 46)",
+  " (in 'issueirt', line 48, column 4 to column 53)",
+  " (in 'issueirt', line 49, column 4 to column 44)",
+  " (in 'issueirt', line 46, column 56 to line 50, column 3)"};
+template <bool propto__, typename T0__,
+          stan::require_all_t<stan::is_stan_scalar<T0__>>* = nullptr>
+stan::promote_args_t<T0__>
+bingham_normalization_log(const T0__& lambda, std::ostream* pstream__);
+template <bool propto__, typename T0__, typename T1__, typename T2__,
+          stan::require_all_t<stan::is_stan_scalar<T0__>,
+                              stan::is_stan_scalar<T1__>,
+                              stan::is_stan_scalar<T2__>>* = nullptr>
+stan::promote_args_t<T0__, T1__, T2__>
+bingham_lpdf(const T0__& u, const T1__& lambda, const T2__& theta,
+             std::ostream* pstream__);
+template <bool propto__, typename T0__, typename T1__, typename T2__,
+          stan::require_all_t<stan::is_stan_scalar<T0__>,
+                              stan::is_stan_scalar<T1__>,
+                              stan::is_stan_scalar<T2__>>* = nullptr>
+stan::promote_args_t<T0__, T1__, T2__>
+bingham_approx_lpdf(const T0__& u, const T1__& mu, const T2__& kappa,
+                    std::ostream* pstream__);
+template <bool propto__, typename T0__,
+          stan::require_all_t<stan::is_stan_scalar<T0__>>*>
+stan::promote_args_t<T0__>
+bingham_normalization_log(const T0__& lambda, std::ostream* pstream__) {
+  using local_scalar_t__ = stan::promote_args_t<T0__>;
+  int current_statement__ = 0;
+  local_scalar_t__ DUMMY_VAR__(std::numeric_limits<double>::quiet_NaN());
+  // suppress unused var warning
+  (void) DUMMY_VAR__;
+  try {
+    current_statement__ = 85;
+    if (stan::math::logical_lt(lambda, 1e-6)) {
+      current_statement__ = 83;
+      return stan::math::log((2 * stan::math::pi()));
+    } else {
+      current_statement__ = 82;
+      if (stan::math::logical_lt(lambda, 100)) {
+        current_statement__ = 80;
+        return (stan::math::log((2 * stan::math::pi())) +
+               stan::math::log(
+                 stan::math::modified_bessel_first_kind(0, lambda)));
+      } else {
+        current_statement__ = 78;
+        return (lambda - (0.5 * stan::math::log(lambda)));
+      }
+    }
+  } catch (const std::exception& e) {
+    stan::lang::rethrow_located(e, locations_array__[current_statement__]);
+  }
+}
+template <bool propto__, typename T0__, typename T1__, typename T2__,
+          stan::require_all_t<stan::is_stan_scalar<T0__>,
+                              stan::is_stan_scalar<T1__>,
+                              stan::is_stan_scalar<T2__>>*>
+stan::promote_args_t<T0__, T1__, T2__>
+bingham_lpdf(const T0__& u, const T1__& lambda, const T2__& theta,
+             std::ostream* pstream__) {
+  using local_scalar_t__ = stan::promote_args_t<T0__, T1__, T2__>;
+  int current_statement__ = 0;
+  local_scalar_t__ DUMMY_VAR__(std::numeric_limits<double>::quiet_NaN());
+  // suppress unused var warning
+  (void) DUMMY_VAR__;
+  try {
+    Eigen::Matrix<local_scalar_t__,-1,1> x =
+      Eigen::Matrix<local_scalar_t__,-1,1>::Constant(2, DUMMY_VAR__);
+    current_statement__ = 88;
+    stan::model::assign(x, stan::math::cos(u), "assigning variable x",
+      stan::model::index_uni(1));
+    current_statement__ = 89;
+    stan::model::assign(x, stan::math::sin(u), "assigning variable x",
+      stan::model::index_uni(2));
+    Eigen::Matrix<local_scalar_t__,-1,-1> A_diag =
+      Eigen::Matrix<local_scalar_t__,-1,-1>::Constant(2, 2, DUMMY_VAR__);
+    current_statement__ = 91;
+    stan::model::assign(A_diag, lambda, "assigning variable A_diag",
+      stan::model::index_uni(1), stan::model::index_uni(1));
+    current_statement__ = 92;
+    stan::model::assign(A_diag, 0, "assigning variable A_diag",
+      stan::model::index_uni(1), stan::model::index_uni(2));
+    current_statement__ = 93;
+    stan::model::assign(A_diag, 0, "assigning variable A_diag",
+      stan::model::index_uni(2), stan::model::index_uni(1));
+    current_statement__ = 94;
+    stan::model::assign(A_diag, -lambda, "assigning variable A_diag",
+      stan::model::index_uni(2), stan::model::index_uni(2));
+    Eigen::Matrix<local_scalar_t__,-1,1> mu =
+      Eigen::Matrix<local_scalar_t__,-1,1>::Constant(2, DUMMY_VAR__);
+    current_statement__ = 96;
+    stan::model::assign(mu, stan::math::cos(theta), "assigning variable mu",
+      stan::model::index_uni(1));
+    current_statement__ = 97;
+    stan::model::assign(mu, stan::math::sin(theta), "assigning variable mu",
+      stan::model::index_uni(2));
+    Eigen::Matrix<local_scalar_t__,-1,-1> R =
+      Eigen::Matrix<local_scalar_t__,-1,-1>::Constant(2, 2, DUMMY_VAR__);
+    current_statement__ = 99;
+    stan::model::assign(R,
+      stan::model::rvalue(mu, "mu", stan::model::index_uni(1)),
+      "assigning variable R", stan::model::index_uni(1),
+      stan::model::index_uni(1));
+    current_statement__ = 100;
+    stan::model::assign(R,
+      -stan::model::rvalue(mu, "mu", stan::model::index_uni(2)),
+      "assigning variable R", stan::model::index_uni(1),
+      stan::model::index_uni(2));
+    current_statement__ = 101;
+    stan::model::assign(R,
+      stan::model::rvalue(mu, "mu", stan::model::index_uni(2)),
+      "assigning variable R", stan::model::index_uni(2),
+      stan::model::index_uni(1));
+    current_statement__ = 102;
+    stan::model::assign(R,
+      stan::model::rvalue(mu, "mu", stan::model::index_uni(1)),
+      "assigning variable R", stan::model::index_uni(2),
+      stan::model::index_uni(2));
+    Eigen::Matrix<local_scalar_t__,-1,-1> A =
+      Eigen::Matrix<local_scalar_t__,-1,-1>::Constant(2, 2, DUMMY_VAR__);
+    current_statement__ = 103;
+    stan::model::assign(A,
+      stan::math::multiply(stan::math::multiply(R, A_diag),
+        stan::math::transpose(R)), "assigning variable A");
+    local_scalar_t__ log_prob = DUMMY_VAR__;
+    current_statement__ = 104;
+    log_prob = stan::math::dot_product(x, stan::math::multiply(A, x));
+    local_scalar_t__ log_C = DUMMY_VAR__;
+    current_statement__ = 105;
+    log_C = bingham_normalization_log<false>(lambda, pstream__);
+    current_statement__ = 106;
+    return (log_prob - log_C);
+  } catch (const std::exception& e) {
+    stan::lang::rethrow_located(e, locations_array__[current_statement__]);
+  }
+}
+template <bool propto__, typename T0__, typename T1__, typename T2__,
+          stan::require_all_t<stan::is_stan_scalar<T0__>,
+                              stan::is_stan_scalar<T1__>,
+                              stan::is_stan_scalar<T2__>>*>
+stan::promote_args_t<T0__, T1__, T2__>
+bingham_approx_lpdf(const T0__& u, const T1__& mu, const T2__& kappa,
+                    std::ostream* pstream__) {
+  using local_scalar_t__ = stan::promote_args_t<T0__, T1__, T2__>;
+  int current_statement__ = 0;
+  local_scalar_t__ DUMMY_VAR__(std::numeric_limits<double>::quiet_NaN());
+  // suppress unused var warning
+  (void) DUMMY_VAR__;
+  try {
+    local_scalar_t__ vm_1 = DUMMY_VAR__;
+    current_statement__ = 108;
+    vm_1 = stan::math::von_mises_lpdf<false>(u, mu, kappa);
+    local_scalar_t__ vm_2 = DUMMY_VAR__;
+    current_statement__ = 109;
+    vm_2 = stan::math::von_mises_lpdf<false>(u, (mu + stan::math::pi()),
+             kappa);
+    current_statement__ = 110;
+    return (stan::math::log_sum_exp(vm_1, vm_2) - stan::math::log(2));
+  } catch (const std::exception& e) {
+    stan::lang::rethrow_located(e, locations_array__[current_statement__]);
+  }
+}
 #include <stan_meta_header.hpp>
 class model_issueirt final : public model_base_crtp<model_issueirt> {
 private:
@@ -462,13 +653,13 @@ public:
                             stan::model::rvalue(r_u, "r_u",
                               stan::model::index_uni(i))));
           current_statement__ = 37;
-          lp_accum__.add(stan::math::von_mises_lpdf<propto__>(
+          lp_accum__.add(bingham_approx_lpdf<false>(
                            stan::model::rvalue(u, "u",
                              stan::model::index_uni(i)),
                            stan::model::rvalue(theta, "theta",
                              stan::model::index_uni(
                                stan::model::rvalue(z, "z",
-                                 stan::model::index_uni(i)))), rho));
+                                 stan::model::index_uni(i)))), rho, pstream__));
           current_statement__ = 38;
           lp_accum__.add(stan::math::normal_lpdf<propto__>(
                            stan::model::rvalue(w, "w",

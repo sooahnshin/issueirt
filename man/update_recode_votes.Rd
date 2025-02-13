@@ -2,7 +2,7 @@
 % Please edit documentation in R/preprocess.R
 \name{update_recode_votes}
 \alias{update_recode_votes}
-\title{Fix sign-flip based on the fit}
+\title{Fix sign-flip based on the fit (Optional)}
 \usage{
 update_recode_votes(votes, stan_input, posterior_summary)
 }
@@ -20,4 +20,6 @@ A matrix of updated votes. In case of dynamic model, it returns a list of matric
 Update the votes based on the cosine similarity between the estimated direction
 of rollcall and the estimated direction of issue-specific axes. If the cosine similarity is negative,
 it is a sign of sign-flip. This function updates the votes to fix the sign-flip.
+You may use this only when you fit the model using von Mises-Fisher distribution
+instead of Bingham distribution (default).
 }

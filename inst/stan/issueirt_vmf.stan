@@ -1,61 +1,3 @@
-functions {
-  // Approximate the log of the normalization constant C(A)
-  real bingham_normalization_log(real lambda) {
-    if (lambda < 1e-6) {
-      // For very small lambda, C(A) ~ 2π (uniform distribution on the circle)
-      return log(2 * pi());
-    } else if (lambda < 100) {
-      // For moderate lambda, use the modified Bessel function of the first kind
-      return log(2 * pi()) + log(modified_bessel_first_kind(0, lambda));
-    } else {
-      // For large lambda, use the asymptotic approximation
-      return lambda - 0.5 * log(lambda);
-    }
-  }
-
-  // Bingham log probability function with scalar lambda and mean direction mu
-  real bingham_lpdf(real u, real lambda, real theta) {
-    // Convert polar coordinate u to Cartesian unit vector (cos(u), sin(u))
-    vector[2] x;
-    x[1] = cos(u);
-    x[2] = sin(u);
-
-    // Construct the diagonal matrix A = diag(lambda, -lambda)
-    matrix[2, 2] A_diag;
-    A_diag[1, 1] = lambda;
-    A_diag[1, 2] = 0;
-    A_diag[2, 1] = 0;
-    A_diag[2, 2] = -lambda;
-
-    // Construct rotation matrix using the mean direction mu
-    vector[2] mu;
-    mu[1] = cos(theta);
-    mu[2] = sin(theta);
-    matrix[2, 2] R;
-    R[1, 1] = mu[1];
-    R[1, 2] = -mu[2];
-    R[2, 1] = mu[2];
-    R[2, 2] = mu[1];
-
-    // Rotate the diagonal matrix A to align with the mean direction
-    matrix[2, 2] A = R * A_diag * R';
-
-    // Compute the unnormalized log-probability
-    real log_prob = dot_product(x, A * x);
-
-    // Compute the approximate log normalization constant
-    real log_C = bingham_normalization_log(lambda);
-
-    // Return the normalized log-probability
-    return log_prob - log_C;
-  }
-  // Generalized Bingham-like log-PDF with parameterized mean direction
-  real bingham_approx_lpdf(real u, real mu, real kappa) {
-    real vm_1 = von_mises_lpdf(u | mu, kappa);           // Component centered at mu
-    real vm_2 = von_mises_lpdf(u | mu + pi(), kappa);    // Component centered at mu + pi
-    return log_sum_exp(vm_1, vm_2) - log(2);            // Combine components equally
-  }
-}
 data {
  int<lower=1> J; // Legislators
  int<lower=1> M; // Roll calls
@@ -105,14 +47,17 @@ model {
   for (k in 1:K) {
     r_theta[k] ~ normal(1.0, 0.1); // Sample auxiliary variable
     target += -log(r_theta[k]); // Log of determinant of Jacobian of Cartesian (x,y) -> Polar (theta, r)
+    // (i.e. determinanot of matrix of dr/dx, dr/dy, dtheta/dx, dtheta/dy)
+    // target += b*rho*cos(theta[k]); // Alternative to von_mises()
+    // target += -log(modified_bessel_first_kind(0, b*rho));
     theta[k] ~ von_mises(0, b*rho); // Sample issue vector
   }
   for (i in 1:M) {
     r_u[i] ~ normal(1.0, 0.1); // Sample auxiliary variable
     target += -log(r_u[i]);
-    target += bingham_approx_lpdf(u[i] | theta[z[i]], rho); // Sample roll call vector
-    // If you want to use the exact Bingham distribution instead of approximation, use the following line
-    // target += bingham_lpdf(u[i], rho, theta[z[i]]);
+    // target += rho*cos(u[i] - theta[z[i]]);
+    // target += -log(modified_bessel_first_kind(0, rho));
+    u[i] ~ von_mises(theta[z[i]], rho); // Sample roll call vector
     w[i] ~ normal(0,5)T[0,]; // Scale parameter
     alpha[i] ~ normal(0,5); // Difficulty parameter
   }
@@ -126,4 +71,3 @@ generated quantities {
     y_mis[n] = bernoulli_rng(Phi(dot_product(x[j[idx_mis[n]]], [cos(u[m[idx_mis[n]]]), sin(u[m[idx_mis[n]]])]) * w[m[idx_mis[n]]] - alpha[m[idx_mis[n]]]));
   }
 }
-

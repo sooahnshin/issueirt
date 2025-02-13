@@ -145,42 +145,16 @@ legis <- raw_legis[filtered$legis,]
 votes <- rc$votes[filtered$legis, filtered$bills]
 ```
 
-## Step 2: Fix the sign-flip
-
-For the identification of the model, we need to fix the sign-flip (please refer to the paper for more details).
-Note that this step is necessary for a real dataset, but not for synthetic data generated with `generate_data`.
-
-We can use the `recode_votes` function to recode votes in the following coding rule: 
-- `1` indicates a liberal majority (or conservative minority), and 
-- `0` indicates a conservative majority (or liberal minority).
-
-```{r recode_votes}
-recoded_votes <- recode_votes(votes, 
-                              party_code = legis$group, 
-                              liberal_code = "A", # group A is liberal group
-                              conservative_code = "B", # group B is conservative group
-                              na_threshold = 0.5) # if the proportion of missing values is greater than 0.5, the vote is not recoded
-```
-
-We use `rollcall` object from the `pscl` package as the main input.
-
-```{r create_rollcall_recoded}
-rc_input <- pscl::rollcall(recoded_votes,
-                           yea = 1, nay = 0, missing = NA,
-                           legis.names = legis$id, legis.data = legis,
-                           vote.names = bills$id, vote.data = bills)
-```
-
-In case of synthetic data generated with `generate_data`, we may skip this step since the data already follows the coding rule.
+Finally, we can create a `rollcall` object using the filtered votes and legislators.
 
 ```{r create_rollcall_recoded_synthetic}
-rc_input <- pscl::rollcall(votes, # original votes that are not recoded
+rc_input <- pscl::rollcall(votes, 
                            yea = 1, nay = 0, missing = NA,
                            legis.names = legis$id, legis.data = legis,
                            vote.names = bills$id, vote.data = bills)
 ```
 
-## Step 3: Starting values
+## Step 2: Starting values
 
 We use Bayesian IRT model to generate the starting values for the `IssueIRT` model.
 First, we can use `ideal()` function from the `pscl` package to fit the model.
@@ -234,7 +208,7 @@ plot_ideal(ideal_point_1d = ideal_pp$xbar[,1], ideal_point_2d = ideal_pp$xbar[,2
            breaks.group = c("A", "B", "C"), values.shape = c(17,18,19), values.color = c("indianred", "steelblue", "darkgreen"))
 ```
 
-## Step 4: Make inputs for the model
+## Step 3: Make inputs for the model
 
 Now, we are ready to make inputs for the `issueirt_stan()` function.
 We prepare the issue labels first. In case of character issue labels, we can use `make_issue_labels()` function to convert them into numeric (non-negative integer) labels.
@@ -258,7 +232,7 @@ stan_input <- make_stan_input(
 )
 ```
 
-## Step 5: Fit the model
+## Step 4: Fit the model
 
 Finally, we fit the `IssueIRT` model using the `issueirt_stan` function.
 You may want to adjust the number of chains, warmup, and iterations based on the convergence diagnostics and the computational resources.
@@ -277,11 +251,11 @@ fit_sim <- issueirt_stan(
 
 ```{r call_fit, show=FALSE}
 ## access the internal dataset
-## script is available at data-raw/synthetic_fit.R, which is same as the codes above
+## script is available at data-raw/synthetic_fit.R, which is same as the codes above except for longer iterations
 fit_sim <- issueirt:::fit_sim
 ```
 
-## Step 6: Post-process the model parameters
+## Step 5: Post-process the model parameters
 
 After fitting the model, we can post-process the model to visualize the estimated issue-specific ideal points.
 As aforementioned, the issue-specific ideal points are invariant to rotational transformations.
@@ -358,6 +332,37 @@ plot_synth <- function(true, est, p.xlab = NULL, p.ylab = NULL, p.title = NULL) 
     labs(x = p.xlab, y = p.ylab, title = p.title)
   return(plot)
 }
+#' function to plot the theta directions
+plot_axes <- function(est_theta, p.title = NULL) {
+  # Generate a dynamic color palette
+  colors <- scales::hue_pal()(length(est_theta))
+  
+  # Define line properties in a data frame
+  line_data <- tibble(
+    slope = tan(est_theta),
+    color = colors,
+    linetype = rep("solid", length(est_theta)),
+    label = seq_along(est_theta)  # Line order (1, 2, 3, ...)
+  )
+  
+  # Compute label positions ensuring unit norm (radius = 1)
+  label_positions <- tibble(
+    x = cos(est_theta),  # x-position based on unit vector
+    y = sin(est_theta),  # y-position based on unit vector
+    label = seq_along(est_theta),
+    color = colors
+  )
+  
+  # Create the plot
+  ggplot() +
+    pmap(line_data, ~ geom_abline(slope = ..1, intercept = 0, color = ..2, linetype = ..3)) +
+    geom_text(data = label_positions, aes(x = x, y = y, label = label, color = color), hjust = 0.5, vjust = 0.5, size = 4) +
+    scale_color_identity() +  # Ensures colors match abline colors
+    coord_fixed(xlim = c(-1, 1), ylim = c(-1, 1)) +
+    labs(title = p.title,
+         x = "Dimension 1", y = "Dimension 2")
+}
+
 ```
 
 ```{r visualize_posterior_simulation}
@@ -367,12 +372,13 @@ plot_synth(true = true_legis$V1,
 plot_synth(true = true_legis$V2, 
            est = posterior_summary_pp$x_postprocessed |> filter(dimension == 2) |> pull(mean), 
            p.title = "Dimension 2", p.xlab = "True", p.ylab = "Estimate (IssueIRT)")
-plot_synth(true = 0:5 * pi/6, 
-           est = posterior_summary_pp$theta_postprocessed |> pull(mean), 
-           p.title = expression("Mean Direction Vector ("*theta*")"), p.xlab = "True", p.ylab = "Estimate (IssueIRT)")
+patchwork::wrap_plots(
+  plot_axes(0:5 * pi/6, p.title = "True Issue Axes"),
+  plot_axes(posterior_summary_pp$theta_postprocessed |> pull(`50%`), p.title = "Estimated Issue Axes")
+)
 ```
 
-## Step 7: Compute posterior statistics
+## Step 6: Compute posterior statistics
 
 We can compute the posterior statistics to assess the convergence of the model.
 As a warm-up, we start by computing the computation time.
@@ -446,17 +452,39 @@ quantiles <- summarized_draws|>
 quantiles |> select(Parameter, contains("\\hat{R}")) |> knitr::kable(digits = 2)
 quantiles |> select(Parameter, contains("ESS")) |> knitr::kable()
 ```
+One may also want to visualize the posterior distribution of the estimated parameters, especially $\theta$'s, using the `bayesplot` package.
+
+```{r bayes_plot}
+samples_pp <- post_process(
+  stan_fit = fit_sim, constraints = const_ls, legis_label = legis$id
+  )
+df <- samples_pp$theta |> as.data.frame()
+colnames(df) <- paste0("Issue ", 1:6)
+bayesplot::mcmc_areas(df, prob = 0.8)
+```
 
 If needed, we may want to adjust the number of chains, warmup, and iterations based on these convergence diagnostics.
 
-## Step 8: Calculate issue-specific ideal points
+## Step 7: Calculate issue-specific ideal points
 
 Finally, using the fitted parameters from the `IssueIRT` model, we can calculate the issue-specific ideal points with the `get_ideal_points()` function.
 We can use `plot_issueirt()` function to visualize the issue-specific ideal points.
 
 ```{r calculate_issue_specific}
-issue_irt <- get_ideal_points(stan_fit = fit_sim, issue_label = paste0("Issue ", 1:6), legis_label = legis$id, legis_group = legis$group)
+issue_irt <- get_ideal_points(stan_fit = fit_sim, issue_label = paste0("Issue ", 1:6), legis_label = legis$id, legis_group = legis$group, dynamic = FALSE)
 plot_issueirt(issueirt = issue_irt, p.title = "Issue Specific Ideal Points",
               breaks.group = c("A", "B", "C"), values.shape = c(17,18,19), values.color = c("indianred", "steelblue", "darkgreen"))
 ```
+You may want to fix the sign-flip of each issue-specific ideal points if needed.
+For instance, if the estimated issue-specific ideal points for some issue areas have 
+opposite left-to-right direction, you may want to flip the sign of the estimated ideal points for such issue areas.
 
+```{r flip_sign}
+# flip sign of the first and second issue areas
+issue_irt_flip <- issue_irt |>
+  mutate(issue_index = as.character(issue_index),
+         legis_index = as.character(legis_index)) |>
+  mutate(across(where(is.numeric), ~ if_else(issue_label %in% c("Issue 1", "Issue 2"), -., .)))
+plot_issueirt(issueirt = issue_irt_flip, p.title = "Issue Specific Ideal Points",
+              breaks.group = c("A", "B", "C"), values.shape = c(17,18,19), values.color = c("indianred", "steelblue", "darkgreen"))
+```

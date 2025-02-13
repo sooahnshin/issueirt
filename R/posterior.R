@@ -172,6 +172,7 @@ make_posterior_summary <- function(stan_fit, issue_label = NULL, rc_label = NULL
 #' @param legis_label A vector of legislator labels.
 #' @param legis_group A vector of legislator group labels.
 #' @param save.samples A logical value indicating whether to save samples (optional).
+#' @param dynamic A logical value indicating whether the fitted model is a dynamic model.
 #'
 #' @return A tibble of posterior summary for issue-specific ideal points.
 #' @importFrom rstan extract
@@ -179,7 +180,9 @@ make_posterior_summary <- function(stan_fit, issue_label = NULL, rc_label = NULL
 #' @importFrom purrr map
 #' @importFrom stats sd quantile
 #' @export
-get_ideal_points <- function(stan_fit, issue_label = NULL, legis_label = NULL, legis_group = NULL, save.samples = FALSE) {
+get_ideal_points <- function(stan_fit, issue_label = NULL, legis_label = NULL,
+                             legis_group = NULL, save.samples = FALSE,
+                             dynamic = TRUE) {
   theta_samples <- extract(stan_fit, "theta")$theta
   k <- dim(theta_samples)[2]
   if(is.null(issue_label)) {
@@ -205,9 +208,12 @@ get_ideal_points <- function(stan_fit, issue_label = NULL, legis_label = NULL, l
                   iter = i)
     return(res)
   }) |> bind_rows()
-  term_name <- gsub("_.*", "", issue_samples$issue_label) |> unique()
-  issue_samples <- issue_samples |>
-    filter(term_name[as.integer(gsub(".*_", "", .data$legis_label))] == gsub("_.*", "", .data$issue_label))
+  if(isTRUE(dynamic)) {
+    term_name <- gsub("_.*", "", issue_samples$issue_label) |> unique()
+    issue_samples <- issue_samples |>
+      filter(term_name[as.integer(gsub(".*_", "", .data$legis_label))] == gsub("_.*", "", .data$issue_label))
+  }
+
   issue_posterior <- issue_samples |>
     group_by(.data$parameter, .data$legis_index, .data$legis_label, .data$issue_index, .data$issue_label) |>
     summarise(

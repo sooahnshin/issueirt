@@ -17,7 +17,8 @@ generate_data(
   X = NULL,
   lop = 0,
   minvotes = 20,
-  missingness_rate = 0.05
+  missingness_rate = 0.05,
+  fixed_sign = FALSE
 )
 }
 \arguments{
@@ -46,6 +47,8 @@ generate_data(
 \item{minvotes}{Minimum number of votes required for a legislator to be included.}
 
 \item{missingness_rate}{Rate of missingness in the data.}
+
+\item{fixed_sign}{Logical, if TRUE, the yea_to_nay direction is fixed.}
 }
 \value{
 A list containing 'data' for general use and 'stan' for inputs to a Stan model.

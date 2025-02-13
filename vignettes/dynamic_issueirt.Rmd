@@ -113,30 +113,10 @@ us1890s_issue_code <- map(us1890s_issue_filtered, ~make_issue_code(issue_code_ve
                                                                          pull(issue_label)))
 ```
 
-
-## Step 2: Fix the sign-flip
-
-For the identification of the model, we need to fix the sign-flip (please refer to the paper for more details).
-
-We can use the `recode_votes` function to recode votes in the following coding rule: 
-- `1` indicates a liberal majority (or conservative minority), and 
-- `0` indicates a conservative majority (or liberal minority).
-
-```{r recode_votes}
-us1890s_votes_recoded <- map(1:n_terms, ~recode_votes(us1890s_votes_filtered[[.x]],
-                                                      party_code = us1890s_legis_filtered[[.x]]$party_name,
-                                                      yea = 1,
-                                                      nay = 0,
-                                                      missing = c(NA, 2, 3),
-                                                      liberal_code = "Democrat",
-                                                      conservative_code = "Republican",  
-                                                      na_threshold = 0.5))
-```
-
-Then, we can make dynamic version of `rollcall` object using `make_dynamic_rollcall()` function:
+We can make dynamic version of `rollcall` object using `make_dynamic_rollcall()` function:
 
 ```{r make_dynamic_rollcall}
-dynamic_rc <- make_dynamic_rollcall(votes_list = us1890s_votes_recoded,
+dynamic_rc <- make_dynamic_rollcall(votes_list = us1890s_votes_filtered,
                       issue_list = us1890s_issue_code,
                       legis_list = us1890s_legis_filtered,
                       colname_legis = "icpsr",
@@ -146,12 +126,12 @@ dynamic_rc <- make_dynamic_rollcall(votes_list = us1890s_votes_recoded,
                       term_name = c("H52", "H53", "H54"),
                       left_code = 1,
                       right_code = 0,
-                      missing_code = NA,
+                      missing_code = c(NA, 2),
                       notInLegis_code = 9)
 ```
 
 
-## Step 3: Starting values
+## Step 2: Starting values
 
 We use Bayesian IRT model to generate the starting values for the `IssueIRT` model.
 First, we can use `ideal()` function from the `pscl` package to fit the model.
@@ -159,10 +139,10 @@ You may want to increase the number of iterations, thinning, and burn-in based o
 
 ```{r starting_values}
 ## fit the Bayesian IRT model
-set.seed(1)
+set.seed(111)
 ideal <- pscl::ideal(dynamic_rc$rollcall, dropList = list(lop = 0, legisMin = 0), # no need to further drop votes and legislators
                      priors = NULL, startvals = "eigen", # default priors and starting values
-                     d = 2, maxiter = 500, thin = 1, burnin = 200,
+                     d = 2, maxiter = 1000, thin = 1, burnin = 500,
                      impute = FALSE, normalize = FALSE,
                      store.item = TRUE, file = NULL, verbose = FALSE)
 ```
@@ -186,6 +166,7 @@ pol_rc2 <- find_pol_rc_vertical(ideal, dynamic_rc$rollcall, pol_rc1,
 const_ls <- find_constraints(ideal, dynamic_rc$rollcall, pol_rc1 = pol_rc1, pol_rc2 = pol_rc2, 
                              party_code_col = "group", left_party_code = "Democrat", 
                              as_list = TRUE)
+const_ls <- lapply(const_ls, function(x) x[c(2, 1)]) # swap the order or dimensions (for the ease of illustration)
 print(const_ls)
 ```
 
@@ -208,7 +189,7 @@ plot_ideal(ideal_point_1d = ideal_pp$xbar[,1], ideal_point_2d = ideal_pp$xbar[,2
            breaks.group = breaks.group, values.shape = values.shape, values.color = values.color)
 ```
 
-## Step 4: Make inputs for the model
+## Step 3: Make inputs for the model
 
 Now, we are ready to make inputs for the `issueirt_dynamic_stan()` function.
 We can use `make_dynamic_stan_input()` function to create the inputs.
@@ -222,7 +203,7 @@ dynamic_stan_input <- make_dynamic_stan_input(dynamic_rollcall = dynamic_rc,
                                       sd_dynamic = 0.01)
 ```
 
-## Step 5: Fit the model
+## Step 4: Fit the model
 
 Finally, we fit the `IssueIRT` model using the `issueirt_stan` function.
 You may want to adjust the number of chains, warmup, and iterations based on the convergence diagnostics and the computational resources.
@@ -244,7 +225,7 @@ fit_dynamic <- issueirt_dynamic_stan(
 fit_dynamic <- issueirt:::fit_dynamic
 ```
 
-## Step 6: Post-process the model parameters
+## Step 5: Post-process the model parameters
 
 After fitting the model, we can post-process the model to visualize the estimated issue-specific ideal points.
 As aforementioned, the issue-specific ideal points are invariant to rotational transformations.
@@ -319,41 +300,7 @@ Here, each figure visualizes monetary policy specific axis with the following el
 - Dark orange arrow: direction of issue specific axis ($\theta_z$)
 - Light orange arrows: direction of roll call axes ($u_j$)
 
-One thing to note is that the direction of some roll call axes in the 52nd and 53rd are in opposite direction to the issue specific axis. 
-You may want to use the following code to update step 2 (fix sign-flip) accordingly, and then re-run the model.
-
-```{r update_sign_flip, eval=FALSE}
-us1890s_votes_recoded <- update_recode_votes(us1890s_votes_recoded, dynamic_stan_input, posterior_summary_pp)
-```
-
-With the updated votes, the results now look as below:
-
-```{r call_new_results}
-## call the updated results (refer to data-raw/us_southern_dynamic.R)
-fit_dynamic <- issueirt:::fit_dynamic_updated
-dynamic_stan_input <- issueirt:::dynamic_stan_input
-const_dynamic <- issueirt:::const_dynamic
-posterior_summary_pp <- issueirt:::posterior_summary_pp
-posterior_df_pp <- issueirt:::posterior_df_pp
-```
-
-```{r visualize_issueirt_updated, fig.width=10, fig.height=5}
-p_ls <- plot_issueaxis(stan_input = dynamic_stan_input, 
-                       posterior_summary = posterior_summary_pp,
-                       group = posterior_df_pp$group, p.title = "IssueIRT",
-                       breaks.group = breaks.group, 
-                       values.shape = values.shape, 
-                       values.color = c("#C4B0A6", "#D1A4A2", "#B0AECF", 
-                                        "#B8B5CF", "#C2D7C1", "#777777"),
-                       plot.each.congress = TRUE)
-
-(p_ls[["H52_Monetary"]] + theme(legend.position = "none")) + 
-  (p_ls[["H53_Monetary"]] + theme(legend.position='bottom')) + 
-  (p_ls[["H54_Monetary"]] + theme(legend.position = "none"))  +
-  plot_layout(ncol = 3, guides = "collect")
-```
-
-## Step 7: Compute posterior statistics
+## Step 6: Compute posterior statistics
 
 We can compute the posterior statistics to assess the convergence of the model.
 As a warm-up, we start by computing the computation time.
@@ -428,10 +375,21 @@ quantiles |> select(Parameter, contains("\\hat{R}")) |> knitr::kable(digits = 2)
 quantiles |> select(Parameter, contains("ESS")) |> knitr::kable()
 ```
 
+One may also want to visualize the posterior distribution of the estimated parameters, especially $\theta$'s, using the `bayesplot` package.
+
+```{r bayes_plot}
+samples_pp <- post_process(
+  stan_fit = fit_dynamic, constraints = const_dynamic, legis_label = dynamic_stan_input$misc$legis_term
+  )
+df <- samples_pp$theta |> as.data.frame()
+colnames(df) <- dynamic_stan_input$misc$issue_code_df$codebook$label
+bayesplot::mcmc_areas(df |> select(contains("Monetary")), prob = 0.8)
+```
+
 We may want to adjust the number of chains, warmup, and iterations based on these convergence diagnostics.
 
 
-## Step 8: Calculate issue-specific ideal points
+## Step 7: Calculate issue-specific ideal points
 
 Finally, using the fitted parameters from the `IssueIRT` model, we can calculate the issue-specific ideal points with the `get_ideal_points()` function.
 We can use `plot_issueirt()` function to visualize the issue-specific ideal points.
@@ -442,6 +400,21 @@ issue_irt <- get_ideal_points(stan_fit = fit_dynamic,
                               legis_label = dynamic_stan_input$misc$legis_term, 
                               legis_group = posterior_df_pp$group)
 plot_issueirt(issueirt = issue_irt |> filter(issue_label %in% c("H52_Monetary", "H53_Monetary", "H54_Monetary")), 
+              p.title = "Monetary Policy Specific Ideal Points",
+              breaks.group = breaks.group, values.shape = values.shape, values.color = values.color,
+              alpha = 0.5, size = 3)
+```
+You may want to fix the sign-flip of each issue-specific ideal points if needed.
+For instance, if the estimated issue-specific ideal points for some issue areas have 
+opposite left-to-right direction, you may want to flip the sign of the estimated ideal points for such issue areas.
+Here, we flip the sign so that Populists are on the left.
+
+```{r calculate_issue_specific_flip, fig.width=10, fig.height=5}
+issue_irt_flip <- issue_irt |>
+  mutate(issue_index = as.character(issue_index),
+         legis_index = as.character(legis_index)) |>
+  mutate(across(where(is.numeric), ~ if_else(issue_label %in% c("H52_Monetary", "H53_Monetary", "H54_Monetary"), -., .)))
+plot_issueirt(issueirt = issue_irt_flip |> filter(issue_label %in% c("H52_Monetary", "H53_Monetary", "H54_Monetary")), 
               p.title = "Monetary Policy Specific Ideal Points",
               breaks.group = breaks.group, values.shape = values.shape, values.color = values.color,
               alpha = 0.5, size = 3)
