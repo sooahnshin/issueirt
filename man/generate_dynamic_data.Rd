@@ -19,7 +19,8 @@ generate_dynamic_data(
   lop = 0,
   minvotes = 20,
   t_ls = replicate(30, 1:3, simplify = FALSE),
-  missingness_rate = 0.001
+  missingness_rate = 0.001,
+  fixed_sign = FALSE
 )
 }
 \arguments{
@@ -52,6 +53,8 @@ generate_dynamic_data(
 \item{t_ls}{A list of terms for each legislator.}
 
 \item{missingness_rate}{Rate of missingness in the data.}
+
+\item{fixed_sign}{Logical, if TRUE, the yea_to_nay direction is fixed.}
 }
 \value{
 A list containing 'data' for general use and 'stan' for inputs to a Stan model.

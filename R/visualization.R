@@ -140,16 +140,16 @@ plot_issueaxis <- function(stan_input, posterior_summary,
       geom_abline(aes(slope = .data$tan_u, intercept = 0),
                   alpha = 0.1,
                   data = u_z) +
-      geom_segment(lineend = "butt", linejoin = "round",
-                   color = "orange", alpha = 0.5,
-                   arrow = arrow(length = unit(0.05, "inches")),
-                   aes(x = 0, y = 0, xend = .data$cos_u, yend = .data$sin_u),
-                   data = u_z) +
+      # geom_segment(lineend = "butt", linejoin = "round",
+      #              color = "orange", alpha = 0.5,
+      #              arrow = arrow(length = unit(0.05, "inches")),
+      #              aes(x = 0, y = 0, xend = .data$cos_u, yend = .data$sin_u),
+      #              data = u_z) +
       geom_abline(aes(slope = .data$tan_z, intercept = 0), linewidth = 1.4, data = theta_z) +
-      geom_segment(lineend = "butt", linejoin = "round",
-                   color = "darkorange", linewidth = 1.5,
-                   arrow = arrow(length = unit(0.2, "inches")),
-                   aes(x = 0, y = 0, xend = .data$cos_z, yend = .data$sin_z), data = theta_z) +
+      # geom_segment(lineend = "butt", linejoin = "round",
+      #              color = "darkorange", linewidth = 1.5,
+      #              arrow = arrow(length = unit(0.2, "inches")),
+      #              aes(x = 0, y = 0, xend = .data$cos_z, yend = .data$sin_z), data = theta_z) +
       labs(title = paste0(p.title, " (", issue_label[z], ")"))
     p_ls[[z]] <- p_z
   }

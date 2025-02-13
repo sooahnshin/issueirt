@@ -9,7 +9,8 @@ get_ideal_points(
   issue_label = NULL,
   legis_label = NULL,
   legis_group = NULL,
-  save.samples = FALSE
+  save.samples = FALSE,
+  dynamic = TRUE
 )
 }
 \arguments{
@@ -22,6 +23,8 @@ get_ideal_points(
 \item{legis_group}{A vector of legislator group labels.}
 
 \item{save.samples}{A logical value indicating whether to save samples (optional).}
+
+\item{dynamic}{A logical value indicating whether the fitted model is a dynamic model.}
 }
 \value{
 A tibble of posterior summary for issue-specific ideal points.

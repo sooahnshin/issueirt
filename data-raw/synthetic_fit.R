@@ -118,8 +118,8 @@ fit_sim <- issueirt_stan(
   data = stan_input$data,
   init = list(stan_input$init, stan_input$init), # starting values
   chains = 2,             # number of Markov chains
-  warmup = 10,            # number of warmup iterations per chain
-  iter = 20,              # total number of iterations per chain
+  warmup = 50,            # number of warmup iterations per chain
+  iter = 100,              # total number of iterations per chain
   cores = 2,              # number of cores (could use one per chain)
   seed = 1
 )

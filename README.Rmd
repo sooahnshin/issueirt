@@ -84,12 +84,15 @@ We can project ideal points on the issue-specific axis to generate single-dimens
 ### Visualization of Issue Specific Ideal Points
 
 ```{r points, fig.width=10, fig.height=5}
-issue_irt <- get_ideal_points(stan_fit    = issueirt:::fit_dynamic_updated, 
+issue_irt <- get_ideal_points(stan_fit    = issueirt:::fit_dynamic, 
                               issue_label = issueirt:::dynamic_stan_input$misc$issue_code_df$codebook$label,
                               legis_label = issueirt:::dynamic_stan_input$misc$legis_term, 
                               legis_group = issueirt:::posterior_df_pp$group)
 monetary_irt <- issue_irt |> 
                 dplyr::filter(issue_label %in% c("H52_Monetary", "H53_Monetary", "H54_Monetary")) |>
+                dplyr::mutate(issue_index = as.character(issue_index),
+                              legis_index = as.character(legis_index)) |>
+                dplyr::mutate(dplyr::across(dplyr::where(is.numeric), ~ - .x)) |>
                 dplyr::mutate(issue_label = stringr::str_remove(issue_label, "_Monetary"))
 
 ## Monetary Policy Ideal Points: 52nd to 54th H.R. (1891 - 1896)

@@ -34,16 +34,7 @@ us1890s_issue_code <- map(us1890s_issue_filtered, ~make_issue_code(issue_code_ve
                                                                      distinct() |>
                                                                      pull(issue_label)))
 
-us1890s_votes_recoded <- map(1:n_terms, ~recode_votes(us1890s_votes_filtered[[.x]],
-                                                      party_code = us1890s_legis_filtered[[.x]]$party_name,
-                                                      yea = 1,
-                                                      nay = 0,
-                                                      missing = c(NA, 2, 3),
-                                                      liberal_code = "Democrat",
-                                                      conservative_code = "Republican",
-                                                      na_threshold = 0.5))
-
-dynamic_rc <- make_dynamic_rollcall(votes_list = us1890s_votes_recoded,
+dynamic_rc <- make_dynamic_rollcall(votes_list = us1890s_votes_filtered,
                                     issue_list = us1890s_issue_code,
                                     legis_list = us1890s_legis_filtered,
                                     colname_legis = "icpsr",
@@ -53,14 +44,14 @@ dynamic_rc <- make_dynamic_rollcall(votes_list = us1890s_votes_recoded,
                                     term_name = c("H52", "H53", "H54"),
                                     left_code = 1,
                                     right_code = 0,
-                                    missing_code = NA,
+                                    missing_code = c(NA, 2),
                                     notInLegis_code = 9)
 
 ## fit the Bayesian IRT model
-set.seed(1)
+set.seed(111)
 ideal <- pscl::ideal(dynamic_rc$rollcall, dropList = list(lop = 0, legisMin = 0), # no need to further drop votes and legislators
                      priors = NULL, startvals = "eigen", # default priors and starting values
-                     d = 2, maxiter = 500, thin = 1, burnin = 200,
+                     d = 2, maxiter = 1000, thin = 1, burnin = 500,
                      impute = FALSE, normalize = FALSE,
                      store.item = TRUE, file = NULL, verbose = FALSE)
 
@@ -73,6 +64,7 @@ pol_rc2 <- find_pol_rc_vertical(ideal, dynamic_rc$rollcall, pol_rc1,
 const_ls <- find_constraints(ideal, dynamic_rc$rollcall, pol_rc1 = pol_rc1, pol_rc2 = pol_rc2,
                              party_code_col = "group", left_party_code = "Democrat",
                              as_list = TRUE)
+const_ls <- lapply(const_ls, function(x) x[c(2, 1)]) # swap the order or dimensions (for the ease of illustration)
 print(const_ls)
 
 ## suppress redundant messages
@@ -104,85 +96,11 @@ fit_dynamic <- issueirt_dynamic_stan(
 load("R/sysdata.rda") # to load fit_sim & synth_data from synthetic_fit.R
 usethis::use_data(fit_dynamic, fit_sim, synth_data, overwrite = TRUE, internal = TRUE)
 
-
-##################################################
-# Fix the sign-flip and re-run the model
-##################################################
-
 anchors <- map(names(const_ls), ~str_subset(dynamic_stan_input$misc$legis_term, .x) %>% .[1]) |> unlist()
 print(anchors)
 const_dynamic <- get_dynamic_constraints(fit_dynamic, dynamic_stan_input, anchors)
 posterior_summary_pp <- make_posterior_summary_postprocessed(
   stan_fit = fit_dynamic,
-  constraints = const_dynamic,
-  issue_label = dynamic_stan_input$misc$issue_code_df$codebook$label,
-  rc_label = dynamic_stan_input$misc$bills_df$term_rollnumber,
-  legis_label = dynamic_stan_input$misc$legis_term,
-  missing_label = NULL
-)
-
-us1890s_votes_recoded <- update_recode_votes(us1890s_votes_recoded, dynamic_stan_input, posterior_summary_pp)
-
-dynamic_rc <- make_dynamic_rollcall(votes_list = us1890s_votes_recoded,
-                                    issue_list = us1890s_issue_code,
-                                    legis_list = us1890s_legis_filtered,
-                                    colname_legis = "icpsr",
-                                    colname_party = "group",
-                                    bills_list = us1890s_bills_filtered,
-                                    colname_bills = "rollnumber",
-                                    term_name = c("H52", "H53", "H54"),
-                                    left_code = 1,
-                                    right_code = 0,
-                                    missing_code = NA,
-                                    notInLegis_code = 9)
-
-## fit the Bayesian IRT model
-set.seed(1)
-ideal <- pscl::ideal(dynamic_rc$rollcall, dropList = list(lop = 0, legisMin = 0), # no need to further drop votes and legislators
-                     priors = NULL, startvals = "eigen", # default priors and starting values
-                     d = 2, maxiter = 500, thin = 1, burnin = 200,
-                     impute = FALSE, normalize = FALSE,
-                     store.item = TRUE, file = NULL, verbose = FALSE)
-
-pol_rc1 <- find_pol_rc_horizontal(dynamic_rc$rollcall, party_code_col = "group",
-                                  liberal_code = "Democrat", conservative_code = "Republican",
-                                  na_threshold = 0.5)
-pol_rc2 <- find_pol_rc_vertical(ideal, dynamic_rc$rollcall, pol_rc1,
-                                party_code_col = "group",
-                                na_threshold = 0.5, lop_threshold = 0.1)
-const_ls <- find_constraints(ideal, dynamic_rc$rollcall, pol_rc1 = pol_rc1, pol_rc2 = pol_rc2,
-                             party_code_col = "group", left_party_code = "Democrat",
-                             as_list = TRUE)
-print(const_ls)
-
-## suppress redundant messages
-invisible(capture.output({
-  ideal_pp <- pscl::postProcess(ideal, constraints = const_ls)
-}))
-
-plot_ideal(ideal_point_1d = ideal_pp$xbar[,1], ideal_point_2d = ideal_pp$xbar[,2],
-           group = dynamic_rc$rollcall$legis.data$group, p.title = irt.title,
-           breaks.group = breaks.group, values.shape = values.shape, values.color = values.color)
-
-dynamic_stan_input <- make_dynamic_stan_input(dynamic_rollcall = dynamic_rc,
-                                              ideal = ideal_pp,
-                                              a = 0.01,
-                                              b = 0.001,
-                                              rho_init = 10,
-                                              sd_dynamic = 0.01)
-
-fit_dynamic_updated <- issueirt_dynamic_stan(
-  data = dynamic_stan_input$data,
-  init = list(dynamic_stan_input$init, dynamic_stan_input$init), # starting values
-  chains = 2,             # number of Markov chains
-  warmup = 10,            # number of warmup iterations per chain
-  iter = 20,              # total number of iterations per chain
-  cores = 2,              # number of cores (could use one per chain)
-)
-
-const_dynamic <- get_dynamic_constraints(fit_dynamic_updated, dynamic_stan_input, anchors)
-posterior_summary_pp <- make_posterior_summary_postprocessed(
-  stan_fit = fit_dynamic_updated,
   constraints = const_dynamic,
   issue_label = dynamic_stan_input$misc$issue_code_df$codebook$label,
   rc_label = dynamic_stan_input$misc$bills_df$term_rollnumber,
@@ -216,7 +134,6 @@ p_ls[["H52_Monetary"]] + p_ls[["H53_Monetary"]] + p_ls[["H54_Monetary"]] +
 
 ## save
 usethis::use_data(fit_dynamic, fit_sim, synth_data,
-                  fit_dynamic_updated,
                   dynamic_stan_input, const_dynamic,
                   posterior_summary_pp, posterior_df_pp,
                   overwrite = TRUE, internal = TRUE)

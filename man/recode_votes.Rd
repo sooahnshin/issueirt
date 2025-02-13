@@ -2,7 +2,7 @@
 % Please edit documentation in R/preprocess.R
 \name{recode_votes}
 \alias{recode_votes}
-\title{Recode Roll Call Votes}
+\title{Recode Roll Call Votes (Optional)}
 \usage{
 recode_votes(
   votes,
@@ -36,5 +36,8 @@ recode_votes(
 A matrix of recoded votes. 1 indicates a liberal majority or conservative minority, and 0 indicates a conservative majority or liberal minority.
 }
 \description{
-This function preprocesses roll call vote data by recoding votes to prevent sign flipping. It is designed to work with matrices of votes, those obtained from \code{pscl::rollcall} for example.
+This function preprocesses roll call vote data by recoding votes to prevent sign flipping.
+It is designed to work with matrices of votes, those obtained from \code{pscl::rollcall} for example.
+You may use this only when you fit the model using von Mises-Fisher distribution
+instead of Bingham distribution (default).
 }

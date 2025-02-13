@@ -10,7 +10,8 @@ make_stan_input(
   ideal,
   a = 0.01,
   b = 0.001,
-  rho_init = 10
+  rho_init = 10,
+  fixed_sign = FALSE
 )
 }
 \arguments{
@@ -25,6 +26,8 @@ make_stan_input(
 \item{b}{hyperparameter for the prior of theta 0<b<a}
 
 \item{rho_init}{initial value for rho}
+
+\item{fixed_sign}{Logical, if TRUE, the yea_to_nay direction is fixed.}
 }
 \value{
 A list of data and initial values for Stan

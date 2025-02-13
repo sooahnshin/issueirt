@@ -17,6 +17,7 @@
 #' @param lop Lower bound of proportion of votes, used in filtering.
 #' @param minvotes Minimum number of votes required for a legislator to be included.
 #' @param missingness_rate Rate of missingness in the data.
+#' @param fixed_sign Logical, if TRUE, the yea_to_nay direction is fixed.
 #' @return A list containing 'data' for general use and 'stan' for inputs to a Stan model.
 #' @importFrom stats rnorm runif
 #' @importFrom mvtnorm rmvnorm
@@ -25,12 +26,14 @@
 #' @importFrom Rfast rvonmises
 #' @export
 generate_data <- function(seed = 02138, n = 20, m = 100, k = 5, kappa = 5, rho = 10, a = 0.01,
-                          b = 0.001, theta = NULL, X = NULL, lop = 0, minvotes = 20, missingness_rate = 0.05) {
+                          b = 0.001, theta = NULL, X = NULL, lop = 0, minvotes = 20, missingness_rate = 0.05,
+                          fixed_sign = FALSE) {
   if(missingness_rate < 0 | missingness_rate > 1) stop("missingness_rate must be between 0 and 1")
   set.seed(seed)
 
   # scale parameter
   w <- rnorm(m, mean = 0, sd = kappa)
+  if(isTRUE(fixed_sign)) w <- abs(w)
 
   # issue vectors
   if (is.null(theta)) theta <- rvonmises(k, 0, 0)
@@ -140,6 +143,7 @@ generate_data <- function(seed = 02138, n = 20, m = 100, k = 5, kappa = 5, rho =
 #' @param minvotes Minimum number of votes required for a legislator to be included.
 #' @param t_ls A list of terms for each legislator.
 #' @param missingness_rate Rate of missingness in the data.
+#' @param fixed_sign Logical, if TRUE, the yea_to_nay direction is fixed.
 #' @return A list containing 'data' for general use and 'stan' for inputs to a Stan model.
 #' @importFrom stats rnorm runif
 #' @importFrom mvtnorm rmvnorm
@@ -153,12 +157,14 @@ generate_dynamic_data <- function(seed = 02138, n = 30, m = 270,
                                   kappa = 5, rho = 10, a = 0.01, b = 0.001,
                                   theta_ls = NULL,
                                   X = NULL, lop = 0, minvotes = 20,
-                                  t_ls = replicate(30, 1:3, simplify = FALSE), missingness_rate = 0.001) {
+                                  t_ls = replicate(30, 1:3, simplify = FALSE), missingness_rate = 0.001,
+                                  fixed_sign = FALSE) {
   if(missingness_rate < 0 | missingness_rate > 1) stop("missingness_rate must be between 0 and 1")
   set.seed(seed)
 
   # scale parameter
   w <- rnorm(m, mean = 0, sd = kappa)
+  if(isTRUE(fixed_sign)) w <- abs(w)
 
   # issue vectors
   k <- sum(k_ls)
