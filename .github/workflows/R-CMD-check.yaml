@@ -1,12 +1,10 @@
-# Workflow derived from https://github.com/r-lib/actions/tree/v2/examples
-# Need help debugging build failures? Start at https://github.com/r-lib/actions#where-to-find-help
+name: R-CMD-check
+
 on:
   push:
     branches: [main, master]
   pull_request:
     branches: [main, master]
-
-name: R-CMD-check
 
 jobs:
   R-CMD-check:
@@ -44,6 +42,19 @@ jobs:
           extra-packages: any::rcmdcheck
           needs: check
 
+      - name: Update dependencies
+        run: Rscript -e 'update.packages(ask = FALSE)'
+
+      - name: Cache R packages
+        uses: actions/cache@v3
+        with:
+          path: ${{ runner.tool_cache }}/R
+          key: ${{ runner.os }}-R-${{ matrix.config.r }}
+          restore-keys: |
+            ${{ runner.os }}-R-
+
       - uses: r-lib/actions/check-r-package@v2
         with:
+          error-on: error
+          save-profile: true
           upload-snapshots: true
