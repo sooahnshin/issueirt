@@ -30,7 +30,7 @@ generate_data <- function(seed = 02138, n = 20, m = 100, k = 5, kappa = 5, rho =
   set.seed(seed)
 
   # scale parameter
-  w <- abs(rnorm(m, mean = 0, sd = kappa))
+  w <- rnorm(m, mean = 0, sd = kappa)
 
   # issue vectors
   if (is.null(theta)) theta <- rvonmises(k, 0, 0)
@@ -158,7 +158,7 @@ generate_dynamic_data <- function(seed = 02138, n = 30, m = 270,
   set.seed(seed)
 
   # scale parameter
-  w <- abs(rnorm(m, mean = 0, sd = kappa))
+  w <- rnorm(m, mean = 0, sd = kappa)
 
   # issue vectors
   k <- sum(k_ls)

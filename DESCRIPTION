@@ -1,6 +1,6 @@
 Package: issueirt
 Title: Issue Specific Ideal Point Estimation
-Version: 0.0.1
+Version: 0.0.2
 Authors@R: 
     person("Sooahn", "Shin", , "sooahnshin@fas.harvard.edu", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0001-6213-2197"))
