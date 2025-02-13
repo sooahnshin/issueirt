@@ -14,10 +14,8 @@ Author:
 
 Reference:
 
-- Shin, Sooahn (2024). “Measuring Issue Specific Ideal Points from Roll
-  Call Votes.” Working Paper.
-  - *Please reach out to the author for the latest version of the
-    paper.*
+- [Shin, Sooahn (2024). “Measuring Issue Specific Ideal Points from Roll
+  Call Votes.” Working Paper.](https://sooahnshin.com/issueirt.pdf)
   - *Please cite the paper when using the package.*
 
 ## Installation
