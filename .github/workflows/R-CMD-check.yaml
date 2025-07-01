@@ -55,6 +55,9 @@ jobs:
           extra-packages: any::rcmdcheck
           needs: check
 
+      - name: Install additional suggests (colorspace)
+        run: Rscript -e 'install.packages("colorspace")'
+
       - uses: r-lib/actions/check-r-package@v2
         with:
           upload-snapshots: true

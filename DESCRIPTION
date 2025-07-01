@@ -45,7 +45,8 @@ Suggests:
     tibble,
     spelling,
     bayesplot,
-    scales
+    scales,
+    colorspace
 VignetteBuilder: knitr
 Language: en-US
 LazyData: true
