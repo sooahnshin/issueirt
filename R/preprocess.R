@@ -169,7 +169,7 @@ make_stan_input <- function(issue_code_vec, rollcall, ideal, a = 0.01, b = 0.001
   if(isTRUE(fixed_sign)) {
     theta <- tapply(u, z, mean)
   } else {
-    theta <- tapply(u, z, estimate_bingham_mean_polar)
+    theta <- tapply(u, z, function(x) get_principal_direction(x, return_angle = TRUE))
   }
   r_theta <- rep(1, K)
 
@@ -354,23 +354,4 @@ update_recode_votes <- function(votes,
 
 recode_values <- function(x) {
   ifelse(is.na(x), NA, ifelse(x == 0, 1, ifelse(x == 1, 0, x)))
-}
-
-estimate_bingham_mean_polar <- function(angles) {
-  # Step 1: Convert polar coordinates (angles) to Cartesian coordinates
-  unit_vectors <- cbind(cos(angles), sin(angles))
-
-  # Step 2: Compute the empirical covariance matrix
-  covariance_matrix <- t(unit_vectors) %*% unit_vectors / nrow(unit_vectors)
-
-  # Step 3: Perform eigenvalue decomposition
-  eigen_decomp <- eigen(covariance_matrix)
-
-  # Step 4: The eigenvector corresponding to the largest eigenvalue is the mean direction
-  mean_direction_vector <- eigen_decomp$vectors[, which.max(eigen_decomp$values)]
-
-  # Step 5: Convert the mean direction back to polar coordinates (angle in radians)
-  mean_direction_angle <- atan2(mean_direction_vector[2], mean_direction_vector[1])
-
-  return(mean_direction_angle)
 }

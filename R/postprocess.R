@@ -57,12 +57,16 @@ post_process <- function(stan_fit,
   k <- stan_fit@par_dims$theta
 
   # Create an array
+  u_polar_samples <- extracted_samples$u
+  u_polar_samples <- apply(u_polar_samples, 2, align_to_principal_direction)
   u_cartesian_samples <- array(dim = c(n_iter, m, 2))
-  u_cartesian_samples[, , 1] <- extracted_samples$x_coord_u / extracted_samples$r_u
-  u_cartesian_samples[, , 2] <- extracted_samples$y_coord_u / extracted_samples$r_u
+  u_cartesian_samples[, , 1] <- cos(u_polar_samples)
+  u_cartesian_samples[, , 2] <- sin(u_polar_samples)
+  theta_polar_samples <- extracted_samples$theta
+  theta_polar_samples <- apply(theta_polar_samples, 2, align_to_principal_direction)
   theta_cartesian_samples <- array(dim = c(n_iter, k, 2))
-  theta_cartesian_samples[, , 1] <- extracted_samples$x_coord_theta / extracted_samples$r_theta
-  theta_cartesian_samples[, , 2] <- extracted_samples$y_coord_theta / extracted_samples$r_theta
+  theta_cartesian_samples[, , 1] <- cos(theta_polar_samples)
+  theta_cartesian_samples[, , 2] <- sin(theta_polar_samples)
 
   origin_samples <- array(0, dim = c(n_iter, m, 2))
 
@@ -163,26 +167,51 @@ process_data <- function(data, parameter, index_label, label_data = NULL, dimens
   colnames(data) <- 1:ncol(data)
   label_column_name <- paste0(str_remove(index_label, "_index"), "_label")
 
-  data |>
-    as_tibble() |>
-    summarise(across(everything(), list(
-      mean = ~mean(.),
-      sd = ~sd(.),
-      `2.5%` = ~quantile(., probs = 0.025),
-      `25%` = ~quantile(., probs = 0.25),
-      `50%` = ~quantile(., probs = 0.5),
-      `75%` = ~quantile(., probs = 0.75),
-      `97.5%` = ~quantile(., probs = 0.975)
-    )), .groups = "drop") |>
-    pivot_longer(everything(), names_to = c(index_label, ".value"), names_sep = "_") |>
-    mutate(
-      !!sym(index_label) := as.integer(str_remove(!!sym(index_label), "V")),
-      !!label_column_name := if (!is.null(label_data)) label_data else NA_character_,
-      parameter = parameter,
-      dimension = dimension
-    ) |>
-    relocate(parameter, if (!is.null(dimension)) all_of(dimension) else NULL, !!sym(index_label), !!sym(label_column_name), everything()) |>
-    select(parameter, everything())
+  # for theta and u, use get_principal_direction instead of mean to avoid issues with antipodal points
+  if(parameter %in% c("theta", "u")) {
+    res <- data |>
+      as_tibble() |>
+      summarise(across(everything(), list(
+        mean = ~get_principal_direction(., return_angle = TRUE),
+        sd = ~sd(.),
+        `2.5%` = ~quantile(., probs = 0.025),
+        `25%` = ~quantile(., probs = 0.25),
+        `50%` = ~quantile(., probs = 0.5),
+        `75%` = ~quantile(., probs = 0.75),
+        `97.5%` = ~quantile(., probs = 0.975)
+      )), .groups = "drop") |>
+      pivot_longer(everything(), names_to = c(index_label, ".value"), names_sep = "_") |>
+      mutate(
+        !!sym(index_label) := as.integer(str_remove(!!sym(index_label), "V")),
+        !!label_column_name := if (!is.null(label_data)) label_data else NA_character_,
+        parameter = parameter,
+        dimension = dimension
+      ) |>
+      relocate(parameter, if (!is.null(dimension)) all_of(dimension) else NULL, !!sym(index_label), !!sym(label_column_name), everything()) |>
+      select(parameter, everything())
+  } else {
+    res <- data |>
+      as_tibble() |>
+      summarise(across(everything(), list(
+        mean = ~mean(.),
+        sd = ~sd(.),
+        `2.5%` = ~quantile(., probs = 0.025),
+        `25%` = ~quantile(., probs = 0.25),
+        `50%` = ~quantile(., probs = 0.5),
+        `75%` = ~quantile(., probs = 0.75),
+        `97.5%` = ~quantile(., probs = 0.975)
+      )), .groups = "drop") |>
+      pivot_longer(everything(), names_to = c(index_label, ".value"), names_sep = "_") |>
+      mutate(
+        !!sym(index_label) := as.integer(str_remove(!!sym(index_label), "V")),
+        !!label_column_name := if (!is.null(label_data)) label_data else NA_character_,
+        parameter = parameter,
+        dimension = dimension
+      ) |>
+      relocate(parameter, if (!is.null(dimension)) all_of(dimension) else NULL, !!sym(index_label), !!sym(label_column_name), everything()) |>
+      select(parameter, everything())
+  }
+  return(res)
 }
 #' Generate Posterior Summary of Post-Processed Stan Output
 #'
