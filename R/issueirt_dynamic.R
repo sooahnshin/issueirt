@@ -231,7 +231,10 @@ issueirt_dynamic <- function(
 
   # Get dynamic constraints for post-processing
   if (is.null(anchors_name)) {
-    anchors_name <- purrr::map(names(const_ls), ~stringr::str_subset(dynamic_stan_input$misc$legis_term, .x) %>% .[1]) |> unlist()
+    anchors_name <- purrr::map(names(const_ls), function(nm) {
+      matches <- stringr::str_subset(dynamic_stan_input$misc$legis_term, nm)
+      matches[1]
+    }) |> unlist()
   }
   const_dynamic <- get_dynamic_constraints(stan_fit, dynamic_stan_input, anchors_name)
 

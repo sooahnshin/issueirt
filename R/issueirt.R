@@ -396,8 +396,9 @@ summary.issueirt_fit <- function(object, ...) {
 plot.issueirt_fit <- function(x, type = c("ideal_points", "axes", "issue_specific"), ...) {
   type <- match.arg(type)
 
+  # Get group from ideal_points if it exists, otherwise NULL
   group <- if ("legis_group" %in% colnames(x$ideal_points)) {
-    x$legis_data[[names(x$legis_data)[1]]]
+    x$ideal_points$legis_group[match(rownames(x$rollcall$votes), x$ideal_points$legis_label)]
   } else {
     NULL
   }

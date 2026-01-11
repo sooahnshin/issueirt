@@ -75,7 +75,6 @@ fit$ideal_points
 fit_dynamic <- issueirt_dynamic(
   votes_list = list(votes_t1, votes_t2, votes_t3),
   issue_list = list(issue_t1, issue_t2, issue_t3),
-
   legis_list = list(legis_t1, legis_t2, legis_t3),
   colname_legis = "id",
   colname_party = "party",
