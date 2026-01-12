@@ -12,10 +12,18 @@
 #'   Must have the same number of rows as `votes`. If provided and `party_col` is specified,
 #'   it will be used for automatic constraint selection.
 #' @param party_col Optional column name in `legis_data` containing party codes.
-#'   Used for automatic constraint selection.
+#'   If specified, `liberal_code` and `conservative_code` are used to find polarized
+#'   roll calls and select constraints. If NULL (default), constraints are automatically
+#'   determined based on ideal points near the 10th/90th percentiles from the initial
+#'   Bayesian IRT fit for robustness.
 #' @param liberal_code Party code for the liberal/left party (used for constraint selection).
+#'   Only used when `party_col` is specified. If `party_col` is NULL, this parameter is ignored
+#'   and constraints are automatically determined based on ideal points near the 10th/90th percentiles.
 #' @param conservative_code Party code for the conservative/right party (used for constraint selection).
+#'   Only used when `party_col` is specified. If `party_col` is NULL, this parameter is ignored
+#'   and constraints are automatically determined based on ideal points near the 10th/90th percentiles.
 #' @param top_party_code Optional party code for the party expected to be at the top of dimension 2.
+#'   Only used when `party_col` is specified. If `party_col` is NULL, this parameter is ignored.
 #' @param constraints Optional list of 3 constraints for post-processing. If NULL, constraints
 #'   will be automatically determined based on party information.
 #' @param lop Minimum level of support threshold for filtering votes (default: 0).
@@ -54,7 +62,7 @@
 #' # Fit the model with minimal arguments
 #' fit <- issueirt(
 #'   votes = synth$data$Y,
-#'   issue_codes = as.character(synth$stan$z),
+#'   issue_codes = as.character(synth$data$z),
 #'   chains = 2,
 #'   iter = 100,
 #'   warmup = 50
@@ -71,6 +79,7 @@
 #'
 #' @importFrom pscl rollcall ideal
 #' @importFrom dplyr tibble
+#' @importFrom utils capture.output
 #' @export
 issueirt <- function(
     votes,
@@ -184,6 +193,8 @@ issueirt <- function(
       store.item = TRUE, file = NULL, verbose = FALSE
     )
   ))
+  # Fix call object reference for postProcess to work
+  ideal_fit$call$object <- rc_filtered
 
   if (verbose) message("Step 4/7: Finding constraints and post-processing initial fit...")
 
@@ -213,12 +224,16 @@ issueirt <- function(
         as_list = TRUE
       )
     } else {
-      # Use simple constraints based on extreme ideal points
+      # Use simple constraints based on extreme ideal points (using quantiles for robustness)
       xbar <- ideal_fit$xbar
-      # Find extreme legislators
-      idx_left <- which.min(xbar[, 1])
-      idx_right <- which.max(xbar[, 1])
-      idx_top <- which.max(xbar[, 2])
+      # Find legislators near the extremes (10th/90th percentile) for stability
+      q_left <- quantile(xbar[, 1], 0.10)
+      q_right <- quantile(xbar[, 1], 0.90)
+      q_top <- quantile(xbar[, 2], 0.90)
+
+      idx_left <- which(xbar[, 1] <= q_left)[1]
+      idx_right <- which(xbar[, 1] >= q_right)[1]
+      idx_top <- which(xbar[, 2] >= q_top)[1]
 
       legis_names <- rownames(xbar)
       constraints <- list()
@@ -312,6 +327,7 @@ issueirt <- function(
 #' @param x An \code{issueirt_fit} object.
 #' @param ... Additional arguments (not used).
 #' @return Invisibly returns the input object.
+#' @method print issueirt_fit
 #' @export
 print.issueirt_fit <- function(x, ...) {
   cat("IssueIRT Model Fit\n")
@@ -342,6 +358,7 @@ print.issueirt_fit <- function(x, ...) {
 #' @param ... Additional arguments (not used).
 #' @return A list containing summary information.
 #' @importFrom rstan get_elapsed_time
+#' @method summary issueirt_fit
 #' @export
 summary.issueirt_fit <- function(object, ...) {
   # Compute elapsed time
@@ -392,6 +409,7 @@ summary.issueirt_fit <- function(object, ...) {
 #'   "axes", or "issue_specific".
 #' @param ... Additional arguments passed to the underlying plot functions.
 #' @return A ggplot object.
+#' @method plot issueirt_fit
 #' @export
 plot.issueirt_fit <- function(x, type = c("ideal_points", "axes", "issue_specific"), ...) {
   type <- match.arg(type)
