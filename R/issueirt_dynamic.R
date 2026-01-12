@@ -6,10 +6,20 @@
 #'
 #' @param votes_list A list of vote matrices, one for each time period/congress.
 #'   Each matrix should have rows as legislators and columns as roll calls.
-#' @param issue_list A list of issue code objects (from \code{make_issue_code}), one for each period.
+#' @param issue_codes A list of issue codes for each period. Can be either:
+#'   \itemize{
+#'     \item A list of character/numeric vectors (one value per roll call, consistent with \code{issueirt()})
+#'     \item A list of data frames with a column containing issue labels (specify column with \code{colname_issue})
+#'   }
 #' @param legis_list A list of legislator data frames, one for each period.
 #' @param colname_legis Column name in legis_list containing legislator IDs.
+#' @param colname_issue Column name containing issue labels when \code{issue_codes} is a list of data frames.
+#'   Ignored when \code{issue_codes} is a list of vectors. Default: NULL.
 #' @param colname_party Optional column name in legis_list containing party codes.
+#'   If specified, `liberal_code` and `conservative_code` are used to find polarized
+#'   roll calls and select constraints. If NULL (default), constraints are automatically
+#'   determined based on ideal points near the 10th/90th percentiles from the initial
+#'   Bayesian IRT fit for robustness.
 #' @param bills_list Optional list of bill data frames, one for each period.
 #' @param colname_bills Optional column name in bills_list containing bill IDs.
 #' @param term_name Optional vector of term/period names (e.g., c("H52", "H53", "H54")).
@@ -17,9 +27,16 @@
 #' @param right_code Code for nay/right votes (default: 0).
 #' @param missing_code Code(s) for missing votes (default: c(NA, 2)).
 #' @param notInLegis_code Code for legislators not in chamber (default: 9).
+#' @param lop Minimum proportion of minority votes for a roll call to be included (default: 0).
+#'   Roll calls where either yea or nay votes are below this proportion are filtered out.
+#' @param minvotes Minimum number of votes a legislator must cast to be included (default: 0).
 #' @param anchors_name Optional vector of legislator IDs to use as anchors for post-processing.
 #' @param liberal_code Party code for the liberal/left party (used for constraint selection).
+#'   Only used when `colname_party` is specified. If `colname_party` is NULL, this parameter is ignored
+#'   and constraints are automatically determined based on ideal points near the 10th/90th percentiles.
 #' @param conservative_code Party code for the conservative/right party (used for constraint selection).
+#'   Only used when `colname_party` is specified. If `colname_party` is NULL, this parameter is ignored
+#'   and constraints are automatically determined based on ideal points near the 10th/90th percentiles.
 #' @param a Hyperparameter for the prior of rho (default: 0.01).
 #' @param b Hyperparameter for the prior of theta (default: 0.001).
 #' @param rho_init Initial value for rho (default: 10).
@@ -52,18 +69,34 @@
 #' data("us1890s_legis")
 #' data("us1890s_bills")
 #'
-#' # Prepare issue codes
-#' issue_codes <- lapply(us1890s_issue, function(x) {
-#'   make_issue_code(x$issue_label)
-#' })
-#'
-#' # Fit the dynamic model
+#' # Option 1: Using a list of vectors (consistent with issueirt())
+#' issue_vectors <- lapply(us1890s_issue, function(x) x$issue_label)
 #' fit <- issueirt_dynamic(
 #'   votes_list = us1890s_votes,
-#'   issue_list = issue_codes,
+#'   issue_codes = issue_vectors,
 #'   legis_list = us1890s_legis,
 #'   colname_legis = "icpsr",
 #'   colname_party = "party_name",
+#'   liberal_code = "Democrat",
+#'   conservative_code = "Republican",
+#'   bills_list = us1890s_bills,
+#'   colname_bills = "rollnumber",
+#'   term_name = c("H52", "H53", "H54"),
+#'   chains = 2,
+#'   iter = 100,
+#'   warmup = 50
+#' )
+#'
+#' # Option 2: Using a list of data frames
+#' fit <- issueirt_dynamic(
+#'   votes_list = us1890s_votes,
+#'   issue_codes = us1890s_issue,
+#'   colname_issue = "issue_label",
+#'   legis_list = us1890s_legis,
+#'   colname_legis = "icpsr",
+#'   colname_party = "party_name",
+#'   liberal_code = "Democrat",
+#'   conservative_code = "Republican",
 #'   bills_list = us1890s_bills,
 #'   colname_bills = "rollnumber",
 #'   term_name = c("H52", "H53", "H54"),
@@ -87,9 +120,10 @@
 #' @export
 issueirt_dynamic <- function(
     votes_list,
-    issue_list,
+    issue_codes,
     legis_list,
     colname_legis,
+    colname_issue = NULL,
     colname_party = NULL,
     bills_list = NULL,
     colname_bills = NULL,
@@ -98,9 +132,11 @@ issueirt_dynamic <- function(
     right_code = 0,
     missing_code = c(NA, 2),
     notInLegis_code = 9,
+    lop = 0,
+    minvotes = 0,
     anchors_name = NULL,
-    liberal_code = "Democrat",
-    conservative_code = "Republican",
+    liberal_code = 100,
+    conservative_code = 200,
     a = 0.01,
     b = 0.001,
     rho_init = 10,
@@ -122,16 +158,78 @@ issueirt_dynamic <- function(
     term_name <- paste0("T", seq_along(votes_list))
   }
 
-  if (verbose) message("Step 1/7: Creating dynamic rollcall object...")
+  n_terms <- length(votes_list)
 
-  # Create dynamic rollcall
+  if (verbose) message("Step 1/7: Filtering votes and creating dynamic rollcall object...")
+
+
+  # Filter votes to remove unanimous rollcalls and low-participation legislators
+  # This prevents pscl::ideal from dropping items internally
+  rc_list <- purrr::map(1:n_terms, function(t) {
+    pscl::rollcall(
+      votes_list[[t]],
+      yea = left_code,
+      nay = right_code,
+      missing = missing_code,
+      notInLegis = notInLegis_code
+    )
+  })
+
+  filtered_list <- purrr::map(1:n_terms, function(t) {
+    filter_votes(rollcall = rc_list[[t]], lop = lop, minvotes = minvotes)
+  })
+
+  # Apply filters to all data
+  votes_list_filtered <- purrr::map(1:n_terms, function(t) {
+    as.matrix(votes_list[[t]])[filtered_list[[t]]$legis, filtered_list[[t]]$bills, drop = FALSE]
+  })
+  legis_list_filtered <- purrr::map(1:n_terms, function(t) {
+    legis_list[[t]][filtered_list[[t]]$legis, , drop = FALSE]
+  })
+
+  # Detect format: list of vectors vs list of data frames
+  is_vector_format <- is.vector(issue_codes[[1]]) && !is.data.frame(issue_codes[[1]])
+
+  # Filter issue codes and create issue code objects
+  if (is_vector_format) {
+    # List of vectors format (consistent with issueirt())
+    issue_codes_filtered <- purrr::map(1:n_terms, function(t) {
+      codes <- issue_codes[[t]][filtered_list[[t]]$bills]
+      if (is.numeric(codes)) codes <- as.character(codes)
+      codes
+    })
+  } else {
+    # List of data frames format
+    if (is.null(colname_issue)) {
+      stop("colname_issue must be specified when issue_codes is a list of data frames")
+    }
+    issue_codes_filtered <- purrr::map(1:n_terms, function(t) {
+      codes <- issue_codes[[t]][filtered_list[[t]]$bills, , drop = FALSE][[colname_issue]]
+      if (is.numeric(codes)) codes <- as.character(codes)
+      codes
+    })
+  }
+
+  # Create issue code objects after filtering
+  issue_list_filtered <- purrr::map(issue_codes_filtered, function(x) {
+    make_issue_code(issue_code_vec = x)
+  })
+  if (!is.null(bills_list)) {
+    bills_list_filtered <- purrr::map(1:n_terms, function(t) {
+      bills_list[[t]][filtered_list[[t]]$bills, , drop = FALSE]
+    })
+  } else {
+    bills_list_filtered <- NULL
+  }
+
+  # Create dynamic rollcall with filtered data
   dynamic_rc <- make_dynamic_rollcall(
-    votes_list = votes_list,
-    issue_list = issue_list,
-    legis_list = legis_list,
+    votes_list = votes_list_filtered,
+    issue_list = issue_list_filtered,
+    legis_list = legis_list_filtered,
     colname_legis = colname_legis,
     colname_party = colname_party,
-    bills_list = bills_list,
+    bills_list = bills_list_filtered,
     colname_bills = colname_bills,
     term_name = term_name,
     left_code = left_code,
@@ -154,6 +252,8 @@ issueirt_dynamic <- function(
       store.item = TRUE, file = NULL, verbose = FALSE
     )
   ))
+  # Fix call object reference for postProcess to work
+  ideal_fit$call$object <- dynamic_rc$rollcall
 
   if (verbose) message("Step 3/7: Finding constraints...")
 
@@ -181,11 +281,16 @@ issueirt_dynamic <- function(
       as_list = TRUE
     )
   } else {
-    # Use simple constraints based on extreme ideal points
+    # Use simple constraints based on extreme ideal points (using quantiles for robustness)
     xbar <- ideal_fit$xbar
-    idx_left <- which.min(xbar[, 1])
-    idx_right <- which.max(xbar[, 1])
-    idx_top <- which.max(xbar[, 2])
+    # Find legislators near the extremes (10th/90th percentile) for stability
+    q_left <- quantile(xbar[, 1], 0.10)
+    q_right <- quantile(xbar[, 1], 0.90)
+    q_top <- quantile(xbar[, 2], 0.90)
+
+    idx_left <- which(xbar[, 1] <= q_left)[1]
+    idx_right <- which(xbar[, 1] >= q_right)[1]
+    idx_top <- which(xbar[, 2] >= q_top)[1]
 
     legis_names <- rownames(xbar)
     const_ls <- list()
@@ -301,6 +406,7 @@ issueirt_dynamic <- function(
 #' @param x An \code{issueirt_dynamic_fit} object.
 #' @param ... Additional arguments (not used).
 #' @return Invisibly returns the input object.
+#' @method print issueirt_dynamic_fit
 #' @export
 print.issueirt_dynamic_fit <- function(x, ...) {
   cat("Dynamic IssueIRT Model Fit\n")
@@ -332,6 +438,7 @@ print.issueirt_dynamic_fit <- function(x, ...) {
 #' @param ... Additional arguments (not used).
 #' @return A list containing summary information.
 #' @importFrom rstan get_elapsed_time
+#' @method summary issueirt_dynamic_fit
 #' @export
 summary.issueirt_dynamic_fit <- function(object, ...) {
   # Compute elapsed time
@@ -378,6 +485,7 @@ summary.issueirt_dynamic_fit <- function(object, ...) {
 #'   "axes", or "issue_specific".
 #' @param ... Additional arguments passed to the underlying plot functions.
 #' @return A ggplot object or list of ggplot objects.
+#' @method plot issueirt_dynamic_fit
 #' @export
 plot.issueirt_dynamic_fit <- function(x, type = c("ideal_points", "axes", "issue_specific"), ...) {
   type <- match.arg(type)
