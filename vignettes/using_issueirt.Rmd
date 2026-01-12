@@ -34,6 +34,33 @@ You can install `issueirt` package from GitHub using the `devtools` package:
 devtools::install_github("sooahnshin/issueirt", build_vignettes = TRUE, dependencies = TRUE)
 ```
 
+### Quick Start
+
+For users who want to quickly fit an IssueIRT model, the `issueirt()` function provides a one-shot wrapper that handles all preprocessing, model fitting, and post-processing automatically:
+
+```{r quick_start, eval=FALSE}
+library(issueirt)
+
+# Load synthetic data
+synth_data <- issueirt:::synth_data
+
+# Fit the model with minimal arguments
+fit <- issueirt(
+  votes = synth_data$data$Y,
+  issue_codes = as.character(synth_data$data$z),
+  chains = 2,
+  iter = 1000,
+  warmup = 500
+)
+
+# View results
+summary(fit)
+plot(fit, type = "ideal_points")
+plot(fit, type = "issue_specific")
+```
+
+The rest of this vignette demonstrates the step-by-step workflow that `issueirt()` automates, which provides more control over each stage of the analysis.
+
 ## Step 1: Prepare the data
 
 ### Generate synthetic data

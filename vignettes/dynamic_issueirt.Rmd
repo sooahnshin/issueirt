@@ -38,6 +38,47 @@ You can install `issueirt` package from GitHub using the `devtools` package:
 devtools::install_github("sooahnshin/issueirt", build_vignettes = TRUE, dependencies = TRUE)
 ```
 
+### Quick Start
+
+For users who want to quickly fit a dynamic IssueIRT model, the `issueirt_dynamic()` function provides a one-shot wrapper that handles all preprocessing, model fitting, and post-processing automatically:
+
+```{r quick_start, eval=FALSE}
+library(issueirt)
+
+# Load the 1890s U.S. House data
+data("us1890s_votes")
+data("us1890s_issue")
+data("us1890s_legis")
+data("us1890s_bills")
+
+# Prepare issue codes as a list of vectors
+issue_vectors <- lapply(us1890s_issue, function(x) x$issue_label)
+
+# Fit the model with minimal arguments
+fit <- issueirt_dynamic(
+  votes_list = us1890s_votes,
+  issue_codes = issue_vectors,
+  legis_list = us1890s_legis,
+  colname_legis = "icpsr",
+  colname_party = "party_name",
+  liberal_code = "Democrat",
+  conservative_code = "Republican",
+  bills_list = us1890s_bills,
+  colname_bills = "rollnumber",
+  term_name = c("H52", "H53", "H54"),
+  chains = 2,
+  iter = 1000,
+  warmup = 500
+)
+
+# View results
+summary(fit)
+plot(fit, type = "ideal_points")
+plot(fit, type = "issue_specific")
+```
+
+The rest of this vignette demonstrates the step-by-step workflow that `issueirt_dynamic()` automates, which provides more control over each stage of the analysis.
+
 ## Step 1: Prepare the data
 
 ### The 52nd to 54th U.S. House of Representatives (1891 - 1896)
