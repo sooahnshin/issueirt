@@ -21,7 +21,7 @@ knitr::opts_chunk$set(
 
 ## Overview
 
-This vignette provides a brief introduction to the `issueirt` package. The package is designed to fit `IssueIRT` model, a hierarchical Item Response Theory (IRT) model proposed by @issueirt. Specifically, `IssueIRT` estimates an issue-specific axis in a latent policy space, which represents a continuum extending from left to right positions on the issue, using roll-call votes and their issue labels. This approach first estimates multidimensional ideal points using all available voting data, which are then projected onto issue-specific axes to generate single-dimensional, issue-specific ideal points.
+This vignette provides a brief introduction to the `issueirt` package. The package is designed to fit the `IssueIRT` model, a hierarchical Item Response Theory (IRT) model proposed by @issueirt. Specifically, `IssueIRT` estimates an issue-specific axis in a latent policy space, which represents a continuum extending from left to right positions on the issue, using roll-call votes and their issue labels. This approach first estimates multidimensional ideal points using all available voting data, which are then projected onto issue-specific axes to generate single-dimensional, issue-specific ideal points.
 
 In this vignette, we will be using a synthetic dataset to demonstrate how to fit the `IssueIRT` model using the `issueirt` package. The dataset is generated using the `generate_data` function, which is also included in the package. The `IssueIRT` model is then fit to the dataset using the `issueirt_stan` function, after a few preprocessing steps.
 
@@ -38,13 +38,13 @@ devtools::install_github("sooahnshin/issueirt", build_vignettes = TRUE, dependen
 
 ### Generate synthetic data
 
-First, we call a synthetic dataset generated with the `generate_data()` function. 
+First, we load a synthetic dataset generated with the `generate_data()` function. 
 
 ```{r generate_data}
 library(issueirt)
 synth_data <- issueirt:::synth_data
 
-## this data is generated using the following codes
+## this data is generated using the following code
 # synth_data <- generate_data(seed = 02138,
 #                             n = 100,
 #                             m = 150, 
@@ -56,7 +56,7 @@ synth_data <- issueirt:::synth_data
 #                             theta = 0:5 * pi/6)
 ```
 
-We visualize the synthetic data for an illustration of how it looks like.
+We visualize the synthetic data to illustrate what it looks like.
 
 ```{r visualize_true_helper}
 ## helper function to visualize the synthetic data
@@ -114,9 +114,9 @@ plot_ideal(ideal_point_1d = true_legis$V1, true_legis$V2,
 
 ### (Optional) Filter votes and legislators
 
-Before fitting the model, we may want to filter out votes and legislators with marginal amount of information.
+Before fitting the model, we may want to filter out votes and legislators with a marginal amount of information.
 
-Specifically, researcher may want to avoid using (1) lop-sided votes, or (2) legislators with marginal amount of votes.
+Specifically, researchers may want to avoid using (1) lop-sided votes, or (2) legislators with a marginal number of votes.
 (1) might not be a problem for the model fit, and we recommend just excluding unanimous votes.
 (2) may result in high uncertainty in those legislators' ideal points.
 
@@ -134,7 +134,7 @@ rc <- pscl::rollcall(synth_data$data$Y,
 ```
 
 Now we filter out votes and legislators before fitting the model as below.
-We recommend to use `filter_votes()` function to track the removed votes and legislators.
+We recommend using the `filter_votes()` function to track the removed votes and legislators.
 
 ```{r filter_votes}
 ## drop (1) unanimous votes and (2) legislators with marginal amount of votes (< 20)
@@ -169,7 +169,7 @@ ideal <- pscl::ideal(rc_input, dropList = list(lop = 0, legisMin = 0), # no need
                      impute = FALSE, normalize = FALSE,
                      store.item = TRUE, file = NULL, verbose = FALSE)
 ```
-Recall that Bayesian IRT model has identification problem, and thus we fix $d+1$ number of legislators' ideal points.
+Recall that the Bayesian IRT model has an identification problem, and thus we fix $d+1$ legislators' ideal points.
 We can use `find_pol_rc_horizontal()`, `find_pol_rc_vertical()`, and `find_constraints()` function to select those anchors as follows.
 
 - `find_pol_rc_horizontal()`: Find the most polarized roll call in terms of horizontal division.
@@ -211,7 +211,7 @@ plot_ideal(ideal_point_1d = ideal_pp$xbar[,1], ideal_point_2d = ideal_pp$xbar[,2
 ## Step 3: Make inputs for the model
 
 Now, we are ready to make inputs for the `issueirt_stan()` function.
-We prepare the issue labels first. In case of character issue labels, we can use `make_issue_labels()` function to convert them into numeric (non-negative integer) labels.
+We prepare the issue labels first. In the case of character issue labels, we can use the `make_issue_code()` function to convert them into numeric (non-negative integer) labels.
 
 ```{r make_issue_labels}
 ## make character issue code for an illustration
@@ -251,7 +251,7 @@ fit_sim <- issueirt_stan(
 
 ```{r call_fit, show=FALSE}
 ## access the internal dataset
-## script is available at data-raw/synthetic_fit.R, which is same as the codes above except for longer iterations
+## script is available at data-raw/synthetic_fit.R, which is the same as the code above except for longer iterations
 fit_sim <- issueirt:::fit_sim
 ```
 
@@ -279,7 +279,7 @@ Each tibble contains the posterior mean, standard deviation, and quantiles of th
 
 ### Visualization
 
-Now, we visualize the estimated parameters using its posterior mean.
+Now, we visualize the estimated parameters using their posterior means.
 
 ```{r visualize_posterior}
 plot_ideal(ideal_point_1d = posterior_summary_pp$x_postprocessed |> filter(dimension == 1) |> pull(mean), 
@@ -288,7 +288,7 @@ plot_ideal(ideal_point_1d = posterior_summary_pp$x_postprocessed |> filter(dimen
            breaks.group = c("A", "B", "C"), values.shape = c(17,18,19), values.color = c("indianred", "steelblue", "darkgreen"))
 ```
 
-We can also visualize issue specific axes using `plot_issueaxis()` function.
+We can also visualize issue-specific axes using the `plot_issueaxis()` function.
 
 ```{r visualize_issueirt, fig.width=10, fig.height=15}
 p_ls <- plot_issueaxis(stan_input = stan_input, 
@@ -301,7 +301,7 @@ wrap_plots(p_ls) +
   plot_layout(ncol = 2, guides = "collect")
 ```
 
-Here, each figure visualizes issue specific axis with the following elements:
+Here, each figure visualizes an issue-specific axis with the following elements:
 - Points: multidimensional ideal points
 - Black line: issue specific axis
 - Grey lines: roll call axes in such issue area ($j$ such that $z_j = z$)
@@ -312,7 +312,7 @@ One important thing to note is that, using these plots, one can correct any codi
 For example, if a direction of roll call axis is opposite to the direction of issue specific axis, it indicates that the sign of the roll call axis is flipped. 
 In this case, researcher can correct the sign of the roll call axis by flipping $0/1$ to $1/0$ for such roll call and then fit the model again.
 
-Lastly, since this is a synthetic data where the true parameters are known, we can compare the estimated parameters with the true parameters.
+Lastly, since these are synthetic data where the true parameters are known, we can compare the estimated parameters with the true parameters.
 
 ```{r visualize_posterior_helper}
 ## helper function to visualize the synthetic data
@@ -398,7 +398,7 @@ summary_elapsed_times <- data.frame(
 summary_elapsed_times |> knitr::kable()
 ```
 
-We can compute $\hat{R}$ statistics and effective sample size (ESS) using functions from `posterior` package, for example.
+We can compute $\hat{R}$ statistics and effective sample size (ESS) using functions from the `posterior` package, for example.
 
 ```{r posterior_statstics_helper}
 ## helper function to summarize draws

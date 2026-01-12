@@ -3,7 +3,6 @@
 \docType{package}
 \name{issueirt-package}
 \alias{issueirt-package}
-\alias{issueirt}
 \title{The 'issueirt' package.}
 \description{
 A DESCRIPTION OF THE PACKAGE
