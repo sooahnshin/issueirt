@@ -6,9 +6,10 @@
 \usage{
 issueirt_dynamic(
   votes_list,
-  issue_list,
+  issue_codes,
   legis_list,
   colname_legis,
+  colname_issue = NULL,
   colname_party = NULL,
   bills_list = NULL,
   colname_bills = NULL,
@@ -17,6 +18,8 @@ issueirt_dynamic(
   right_code = 0,
   missing_code = c(NA, 2),
   notInLegis_code = 9,
+  lop = 0,
+  minvotes = 0,
   anchors_name = NULL,
   liberal_code = 100,
   conservative_code = 200,
@@ -39,11 +42,18 @@ issueirt_dynamic(
 \item{votes_list}{A list of vote matrices, one for each time period/congress.
 Each matrix should have rows as legislators and columns as roll calls.}
 
-\item{issue_list}{A list of issue code objects (from \code{make_issue_code}), one for each period.}
+\item{issue_codes}{A list of issue codes for each period. Can be either:
+\itemize{
+\item A list of character/numeric vectors (one value per roll call, consistent with \code{issueirt()})
+\item A list of data frames with a column containing issue labels (specify column with \code{colname_issue})
+}}
 
 \item{legis_list}{A list of legislator data frames, one for each period.}
 
 \item{colname_legis}{Column name in legis_list containing legislator IDs.}
+
+\item{colname_issue}{Column name containing issue labels when \code{issue_codes} is a list of data frames.
+Ignored when \code{issue_codes} is a list of vectors. Default: NULL.}
 
 \item{colname_party}{Optional column name in legis_list containing party codes.
 If specified, \code{liberal_code} and \code{conservative_code} are used to find polarized
@@ -64,6 +74,11 @@ Bayesian IRT fit for robustness.}
 \item{missing_code}{Code(s) for missing votes (default: c(NA, 2)).}
 
 \item{notInLegis_code}{Code for legislators not in chamber (default: 9).}
+
+\item{lop}{Minimum proportion of minority votes for a roll call to be included (default: 0).
+Roll calls where either yea or nay votes are below this proportion are filtered out.}
+
+\item{minvotes}{Minimum number of votes a legislator must cast to be included (default: 0).}
 
 \item{anchors_name}{Optional vector of legislator IDs to use as anchors for post-processing.}
 
@@ -125,15 +140,29 @@ data("us1890s_issue")
 data("us1890s_legis")
 data("us1890s_bills")
 
-# Prepare issue codes
-issue_codes <- lapply(us1890s_issue, function(x) {
-  make_issue_code(x$issue_label)
-})
-
-# Fit the dynamic model
+# Option 1: Using a list of vectors (consistent with issueirt())
+issue_vectors <- lapply(us1890s_issue, function(x) x$issue_label)
 fit <- issueirt_dynamic(
   votes_list = us1890s_votes,
-  issue_list = issue_codes,
+  issue_codes = issue_vectors,
+  legis_list = us1890s_legis,
+  colname_legis = "icpsr",
+  colname_party = "party_name",
+  liberal_code = "Democrat",
+  conservative_code = "Republican",
+  bills_list = us1890s_bills,
+  colname_bills = "rollnumber",
+  term_name = c("H52", "H53", "H54"),
+  chains = 2,
+  iter = 100,
+  warmup = 50
+)
+
+# Option 2: Using a list of data frames
+fit <- issueirt_dynamic(
+  votes_list = us1890s_votes,
+  issue_codes = us1890s_issue,
+  colname_issue = "issue_label",
   legis_list = us1890s_legis,
   colname_legis = "icpsr",
   colname_party = "party_name",

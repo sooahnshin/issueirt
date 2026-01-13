@@ -15,7 +15,9 @@
 \item{...}{Additional arguments passed to the underlying plot functions.}
 }
 \value{
-A ggplot object.
+A ggplot object when \code{type = "ideal_points"} or \code{type = "issue_specific"}.
+A named list of ggplot objects (one per issue) when \code{type = "axes"}.
+For the list output, use \code{patchwork::wrap_plots()} to combine plots for saving.
 }
 \description{
 Plot Method for issueirt_fit Objects

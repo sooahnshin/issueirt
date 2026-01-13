@@ -484,7 +484,9 @@ summary.issueirt_dynamic_fit <- function(object, ...) {
 #' @param type Type of plot to create. Options are "ideal_points" (default),
 #'   "axes", or "issue_specific".
 #' @param ... Additional arguments passed to the underlying plot functions.
-#' @return A ggplot object or list of ggplot objects.
+#' @return A ggplot object when \code{type = "ideal_points"} or \code{type = "issue_specific"}.
+#'   A named list of ggplot objects (one per issue) when \code{type = "axes"}.
+#'   For the list output, use \code{patchwork::wrap_plots()} to combine plots for saving.
 #' @method plot issueirt_dynamic_fit
 #' @export
 plot.issueirt_dynamic_fit <- function(x, type = c("ideal_points", "axes", "issue_specific"), ...) {
