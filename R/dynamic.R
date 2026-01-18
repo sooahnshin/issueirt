@@ -151,6 +151,9 @@ make_dynamic_rollcall <- function(votes_list,
     issue_list = issue_list,
     legis_list = legis_list,
     bills_list = bills_list,
+    term_name = term_name,
+    colname_legis = colname_legis,
+    colname_bills = colname_bills,
     call = match.call()
   )
   class(res) <- c("dynamic_rollcall", class(res))
@@ -191,14 +194,11 @@ make_dynamic_stan_input <- function(dynamic_rollcall,
   issue_list <- dynamic_rollcall$issue_list
   legis_list <- dynamic_rollcall$legis_list
   bills_list <- dynamic_rollcall$bills_list
-  colname_legis <- args$colname_legis
+  colname_legis <- dynamic_rollcall$colname_legis
 
 
-  if(is.null(args$term_name)) {
-    term_name <- paste0("T", 1:length(dynamic_rollcall$votes_list))
-  } else {
-    term_name <- eval(args$term_name)
-  }
+  # Use term_name stored in dynamic_rollcall object
+  term_name <- dynamic_rollcall$term_name
 
   n_terms <- length(term_name)
   yea_code <- dynamic_rollcall$rollcall$codes$yea
@@ -227,7 +227,7 @@ make_dynamic_stan_input <- function(dynamic_rollcall,
     bills_list <- map(1:n_terms, ~data.frame(term = term_name[.x], rollnumber = 1:ncol(votes_list[[.x]])))
     colname_bills <- "rollnumber"
   } else {
-    colname_bills <- eval(args$colname_bills)
+    colname_bills <- dynamic_rollcall$colname_bills
   }
   bills_df <- map(1:n_terms, ~bills_list[[.x]] |> mutate(tmp_term = term_name[.x])) |>
     bind_rows() |>

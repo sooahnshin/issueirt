@@ -3,7 +3,6 @@
 #' @description A DESCRIPTION OF THE PACKAGE
 #'
 #' @name issueirt-package
-#' @aliases issueirt
 #' @useDynLib issueirt, .registration = TRUE
 #' @import methods
 #' @import Rcpp

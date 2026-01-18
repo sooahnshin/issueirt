@@ -40,6 +40,57 @@ vignette("using_issueirt")
 vignette("dynamic_issueirt")
 ```
 
+## Quick Start
+
+The `issueirt` package provides convenient one-shot functions to fit IssueIRT models. These functions handle the entire workflow (preprocessing, initial estimation, model fitting, and post-processing) in a single call.
+
+### Static Model
+
+```{r quickstart-static, eval=FALSE}
+library(issueirt)
+
+# Fit a static IssueIRT model
+fit <- issueirt(
+  votes = your_vote_matrix,      # rows = legislators, cols = roll calls
+  issue_codes = your_issue_labels, # issue label for each roll call
+  legis_data = your_legis_df,    # legislator data (optional)
+  party_col = "party",           # party column name (optional)
+  chains = 2,
+  iter = 1000,
+  warmup = 500
+)
+
+# View results
+print(fit)
+summary(fit)
+
+# Access ideal points
+fit$ideal_points
+```
+
+### Dynamic Model
+
+```{r quickstart-dynamic, eval=FALSE}
+# Fit a dynamic IssueIRT model across multiple time periods
+fit_dynamic <- issueirt_dynamic(
+  votes_list = list(votes_t1, votes_t2, votes_t3),
+  issue_list = list(issue_t1, issue_t2, issue_t3),
+  legis_list = list(legis_t1, legis_t2, legis_t3),
+  colname_legis = "id",
+  colname_party = "party",
+  term_name = c("Term1", "Term2", "Term3"),
+  chains = 2,
+  iter = 1000,
+  warmup = 500
+)
+
+# View results
+print(fit_dynamic)
+summary(fit_dynamic)
+```
+
+For more control over the fitting process, you can also use the step-by-step approach described in the vignettes.
+
 ## Example: U.S. House of Representatives (1891 - 1896)
 
 Check `vignette("dynamic_issueirt")` for more details.
